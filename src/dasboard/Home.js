@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import Auth from '../navbar_design/Auth'
 function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
 
@@ -32,7 +32,8 @@ function Home() {
   };
 
   return (
-    <div>
+    <>
+        <Auth />
       <h2>Multiple Image Upload</h2>
       <form onSubmit={handleSubmit}>
         <input type="file" onChange={handleFileChange} multiple />
@@ -48,7 +49,7 @@ function Home() {
           </ul>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

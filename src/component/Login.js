@@ -2,6 +2,7 @@ import React, {useState} from 'react'
 import AuthUser from'./AuthUser';
 import axios from 'axios';
 import Loading from './Loading.js';
+import Nav_bar from '../navbar_design/Nav_bar';
 import Register from '../component/Register'
 import {BrowserRouter , Routes , Route,Link} from 'react-router-dom'
 function Login()
@@ -34,15 +35,7 @@ function Login()
     }
 	return(
    <>
-          <nav className="navbar navbar-expand-lg navbar-light bg-light">
-    <ul className="navbar-nav">
-    <li className="nav-item">
-    <Link className="nav-link" to="/Login">Login</Link>
-     <Link className="nav-link" to="/Register">Register</Link>
-    </li>
-    </ul>
-</nav>
-     
+        <Nav_bar />
     <div className="container">
     <div className="row justify-content-center">
         <div className="col-md-6">
