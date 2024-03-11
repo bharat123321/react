@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Auth from '../navbar_design/Auth'
+import Auth from '../navbar_design/Auth';
+import { BrowserRouter as Router } from 'react-router-dom';
 function Home() {
   const [selectedFiles, setSelectedFiles] = useState([]);
 
@@ -33,7 +34,9 @@ function Home() {
 
   return (
     <>
+    
         <Auth />
+      
       <h2>Multiple Image Upload</h2>
       <form onSubmit={handleSubmit}>
         <input type="file" onChange={handleFileChange} multiple />

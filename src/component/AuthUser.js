@@ -5,7 +5,7 @@ import {useState} from 'react';
   
 export default function AuthUser(){
      
- const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+ 
 
  const getToken = ()=> {
      const tokenString = localStorage.getItem('token');
@@ -38,7 +38,7 @@ export default function AuthUser(){
      method:'POST',
      headers :{
          'Content-Type': 'application/json',
-         'X-CSRF-TOKEN': csrfToken,
+         'Authorization': `Bearer ${token}`
      }
 
  });  

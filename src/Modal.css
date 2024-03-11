@@ -1,0 +1,7 @@
+#navbar_hover:hover {
+  background-color: #333333; /* Change to desired hover color */
+  color: #FFFF00; /* Change to desired text color */
+  border-radius:3%;
+  padding-left:40%;
+  font-size: 18px;
+}
