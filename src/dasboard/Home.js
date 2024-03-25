@@ -1,59 +1,42 @@
-import React, { useState } from 'react';
+import React,{useState,useEffect} from 'react';
 import Auth from '../navbar_design/Auth';
-import { BrowserRouter as Router } from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
+import AuthUser from '../component/AuthUser';
 function Home() {
-  const [selectedFiles, setSelectedFiles] = useState([]);
 
-  const handleFileChange = (event) => {
-    setSelectedFiles(Array.from(event.target.files));
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (selectedFiles.length === 0) {
-      alert('Please select at least one file.');
-      return;
-    }
-
-    const formData = new FormData();
-    selectedFiles.forEach((file, index) => {
-      formData.append(`image${index}`, file);
-    });
-
-    try {
-      const response = await fetch('YOUR_UPLOAD_ENDPOINT', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      console.log('Images uploaded successfully:', data);
-    } catch (error) {
-      console.error('Error uploading images:', error);
-    }
-  };
-
-  return (
-    <>
-    
-        <Auth />
+    useEffect(()=>{
       
-      <h2>Multiple Image Upload</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="file" onChange={handleFileChange} multiple />
-        <button type="submit">Upload</button>
-      </form>
-      {selectedFiles.length > 0 && (
-        <div>
-          <h3>Selected Files:</h3>
-          <ul>
-            {selectedFiles.map((file, index) => (
-              <li key={index}>{file.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
-  );
+          fetchdata();
+    },[]);
+    const {http} = AuthUser();
+    const fetchdata = ()=>{
+        http.get('/fetchdata').then((res)=>{
+            
+        })
+    }
+    
+    return (
+        <>
+            
+            <Card style={{ margin: '0px 10% 0px' }}>
+                <Card.Header>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h4 style={{ cursor: 'pointer' }}>Notes</h4>
+                        <h5 style={{ cursor: 'pointer' }}>Download</h5>
+                    </div>
+                </Card.Header>
+                <Card.Header className="text-muted">2 days ago</Card.Header>
+                <Card.Body>
+                 <Card.Img variant="bottom" src="./logo192.png" style={{ width: "40%", margin: "auto", display: "block" }}/>
+                 <br/>
+                    <Button variant="primary">Go somewhere</Button>
+                </Card.Body>
+
+                
+            </Card>
+        </>
+    )
 }
 
 export default Home;

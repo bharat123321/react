@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -10,6 +10,37 @@ import AuthUser from '../component/AuthUser';
 import { Modal } from "react-bootstrap";
 import Form from 'react-bootstrap/Form';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+function CustomModal({ show, onHide }) {
+
+   const navigate = useNavigate();
+    const joinclass=()=>{
+       navigate('/join');
+       onHide();
+            }
+    const createclass=()=>{ 
+      navigate('/create');
+      onHide();
+     
+    }
+    const onHides=()=>{
+      onHide();
+    }
+  return (
+    <Modal show={show} onHide={onHide} backdrop="static">
+  <Modal.Body>Select Class</Modal.Body>
+  <Modal.Footer style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <Button variant="primary" onClick={joinclass}>Join Class</Button>
+      <Button variant="success" onClick={createclass}>Create Class</Button>
+    </div>
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <Button variant="secondary" onClick={onHides}> Close</Button>
+    </div>
+  </Modal.Footer>
+</Modal>
+ );
+}
 
 function ChangeableMovement({ event, show, setShow }) {
   const [selectedFileCounts, setSelectedFileCounts] = useState({
@@ -47,8 +78,6 @@ const handleImageChange = (e,fileType) => {
   }
   const formData = new FormData();
    if(checkname =="image"){
-          console.log(checkname);
-
  images.forEach((image) => {
   formData.append('images[]', image);
 
@@ -193,9 +222,23 @@ const handleImageChange = (e,fileType) => {
 }
 
 function Auth() {
-  const { logout } = AuthUser();
+     const navigate = useNavigate();
+   const { logout } = AuthUser();
   const [show, setShow] = useState(false);
+  const [showclass, setClass] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [check,setCheck] = useState(false);
+  const[storedata,setStoredata]=useState([]);
+    const {http} = AuthUser();
+  const handleClose = () =>{
+    setShow(false);
+    setClass(false);
+  }
+
+  const handleEventSelection = (event) => {
+    setSelectedEvent(event);
+    setShow(true);
+  };
 
   const handleFile = (event) => {
     event.preventDefault();
@@ -215,10 +258,33 @@ function Auth() {
     setShow(true);
   }
 
+  const handleClass = () =>{
+    setSelectedEvent('Class');
+    setClass(true);
+  }
+
   const logoutUser = () => {
     logout();
   }
-
+   
+ useEffect(()=>{
+  fetchuserdata();
+},[]);
+const fetchuserdata=()=>{
+   http.get("/fetchUser").then((res)=>{
+    console.log(res.data.check);
+     const userData = res.data;
+                let hasId = false;
+                 setStoredata(res.data.check);
+                setCheck(true);
+   }).catch(function(event){
+    console.log(event.response.error)
+   })
+}
+const navigateToSubject = (subjectname) => {
+      
+        navigate(`/${subjectname}`);
+    }
   return (
     <>
       {['sm'].map((expand) => (
@@ -236,22 +302,40 @@ function Auth() {
                 <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`}>Notes Sharing</Offcanvas.Title>
               </Offcanvas.Header>
               <Offcanvas.Body>
-                <Nav className="ms-auto flex-grow-1 pe-3">
-                  <Nav.Link as={Link} to="/Login">Home</Nav.Link>
-                  <hr className="dropdown-divider" />
-                  <NavDropdown title="Upload" id={`offcanvasNavbarDropdown-expand-${expand}`}>
-                    <NavDropdown.Item as={Link} to="/file" onClick={handleFile}>File</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/image" onClick={handleImage}>Image</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/video" onClick={handleVideo}>Video</NavDropdown.Item>
-                  </NavDropdown>
-                  <Nav.Link as={Link} to="/notification">Notification</Nav.Link>
-                  <Nav.Link as={Link} to="/chat">Chat</Nav.Link>
+              <Nav className="mr-3 flex-grow-1 pe-3">
+              <Nav.Link as={Link} to="/home" className="nav-link">Home</Nav.Link>
+              <hr className="dropdown-divider" />
+              <NavDropdown 
+                title="Upload" 
+                id={`offcanvasNavbarDropdown-expand-${expand}`}>
+                <NavDropdown.Item as={Link} to="/file" onClick={handleFile}>File</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/image" onClick={handleImage}>Image</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/video" onClick={handleVideo}>Video</NavDropdown.Item>
+              </NavDropdown>
+              <Nav.Link as={Link} to="/notification" className="nav-link">Notification</Nav.Link>
+             
+
+                 {check && <NavDropdown title="ClassNote" >
+
+                                        {storedata.map((item, index) => (
+                                <NavDropdown.Item key={index} onClick={() => navigateToSubject(item.subjectname)}>
+                            {item.subjectname}
+                        </NavDropdown.Item>          ))}
+                                    </NavDropdown>
+                                }
+                                            
+                                          
                 </Nav>
                 <Nav className="justify-content-end">
                   <NavDropdown title="Setting" id={`offcanvasNavbarDropdown-expand-${expand}`} align={{ sm: 'end' }}>
-                    <NavDropdown.Item href="#action3">Your Profile</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to='/profile'>Your Profile</NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item href="#action4">Your Project</NavDropdown.Item>
+                    <NavDropdown.Divider />
+                     <NavDropdown.Item onClick={handleClass}>Join or Create Class</NavDropdown.Item>
+                    <NavDropdown.Divider />
+                   
+                     <NavDropdown.Item as={Link} to="/results">Results</NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item as={Link} to="/Logout" onClick={logoutUser}>Logout</NavDropdown.Item>
                   </NavDropdown>
@@ -261,7 +345,9 @@ function Auth() {
           </Container>
         </Navbar>
       ))}
-      <ChangeableMovement event={selectedEvent} show={show} setShow={setShow} />
+     <ChangeableMovement event={selectedEvent} show={show} setShow={setShow} handleEventSelection={handleEventSelection} />
+     
+      <CustomModal show={showclass} onHide={handleClose} />
     </>
   );
 }

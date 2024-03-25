@@ -47,7 +47,7 @@ function Register() {
 
     return (
         <>
-            <Nav_bar />
+            
             <div className="check_color">
                 <div className="container">
                     <div className="row justify-content-center">

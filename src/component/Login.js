@@ -4,7 +4,7 @@ import axios from 'axios';
 import Loading from './Loading.js';
 import Nav_bar from '../navbar_design/Nav_bar';
 import Register from '../component/Register'
-import SeparateClass from '../dasboard/SeparateClass';
+import JoinClass from '../dasboard/JoinClass';
 import {BrowserRouter , Routes , Route,Link} from 'react-router-dom'
 import { Button, Col, Container, Modal, Row } from "react-bootstrap";
 
@@ -28,8 +28,7 @@ function CustomModal({ show, onHide }) {
     </div>
   </Modal.Footer>
 </Modal>
-
-  );
+ );
 }
 function Login()
 {
@@ -39,7 +38,7 @@ function Login()
     const[email,setEmail] = useState();
     const[password,setPassword]=useState();
     const data = {email:email,password:password}
-     const[InputErrorList,setInputErrorList] = useState({});
+     const[InputErrorList,setInputErrorList] = useState();
     const[loading,setLoading] = useState(false)
    const [show, setShow] = useState(false);
   const handleClose = () =>{
@@ -48,8 +47,8 @@ function Login()
  window.location.href="/home";
   } 
    
-    const submitForm = ()=> {
-        
+    const submitForm = (event)=> {
+        event.preventDefault();
          setLoading(true);
          //axios.post('http://127.0.0.1:8000/api/login',data).then(res=>{
             http.post('/login',data).then((res)=>{
@@ -69,15 +68,20 @@ function Login()
               
         }).catch(function(error){
             if(error.response){
-                if(error.response.status === 422){
-          setInputErrorList(error.response.data.errors)
+                console.log(error.response.data.error);
+                if(error.response.status === 401){
+          setInputErrorList(error.response.data.error)
+                }
+                if(error.response.status===200)
+                {
+                    setInputErrorList(error.response.data.success)
                 }
             }
         });
     }
 	return(
    <>
-        <Nav_bar />
+        
     <div className="container">
     <div className="row justify-content-center">
         <div className="col-md-6">
@@ -85,22 +89,23 @@ function Login()
                 <div className="card-header">Login</div>
 
                 <div className="card-body">
-         
+         <form onSubmit={submitForm}>
   <div className="form-group">
     <label htmlFor="email">Email address:</label>
-    <input type="email" className="form-control" onChange={e=>setEmail(e.target.value)} placeholder="Email" id="email"/>
-    <span className="text-danger">{InputErrorList.email}</span> 
+    <input type="email" className="form-control" onChange={e=>setEmail(e.target.value)} placeholder="Email" id="email" required/>
+     
   </div>
   <div className="form-group">
     <label htmlFor="pwd">Password:</label>
-    <input type="password" className="form-control"onChange={e=>setPassword(e.target.value)} placeholder="Password" id="pwd"/>
-    <span className="text-danger">{InputErrorList.password}</span> 
+    <input type="password" className="form-control"onChange={e=>setPassword(e.target.value)} placeholder="Password" id="pwd" required/>
+   
   </div>
   <div className="checkbox">
   <label> <input type="checkbox" className="incenter"/>  Remember me</label>
   </div>
-  <button   onClick={submitForm} className="btn btn-success">Submits</button>
- 
+  <span className="text-danger">{InputErrorList}</span> 
+  <button className="btn btn-success">Submits</button>
+    </form> 
       </div>
       </div>
       </div>

@@ -3,7 +3,7 @@ function Design_dashboard() {
 	
 	return (
 		 <>
-           <Auth />
+            
            <h2>CheckAuth</h2>
 
          </>
