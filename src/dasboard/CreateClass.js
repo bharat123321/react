@@ -8,9 +8,9 @@ function CreateClass() {
      const [generatedCode, setGeneratedCode] = useState(generateRandomCode(10)); // Generate the random code and store it in state
     const [userCode, setUserCode] = useState(''); // State to store the user's entered code
     const [files,setFiles] =useState(null);
+    const [filesname ,setFilesname]=useState([]);
     const [showAlert, setShowAlert] = useState(false); // State to control the display of the alert
     const[ subjectname ,Subjectname]=useState("");
-    const data ={userCode:userCode,subjectname:subjectname};
     const inputRef = useRef();
     // Function to generate a random code
     function generateRandomCode(length) {
@@ -34,21 +34,27 @@ function CreateClass() {
     function handleSubmit(event) {
         event.preventDefault();
         // Compare generated code with user input
+        console.log("selectCheck",filesname);
         if (generatedCode === userCode) {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-             http.post('/classcode',data,{
+            const formData = new FormData();
+             filesname.forEach((image) => {
+              formData.append('images[]', image);
+            });
+    formData.append('userCode', userCode);
+    formData.append('subjectname', subjectname);
+    http.post('/classcode',formData,{
   headers: {
     'Content-Type': 'multipart/form-data',
      'X-CSRF-TOKEN': csrfToken
   }
 }).then((res) => {
-    console.log(res.data.code);
+    console.log(res.data);
    
   });
             // Code matches
             setShowAlert(true); // Show success alert
-            alert('SuccessFully insert');
+            
             setUserCode('');
         } else {
             // Code does not match
@@ -63,11 +69,26 @@ const handleDragOver=(event)=>{
     event.preventDefault();
  console.log(event);
 }
-const handleDrop=(event)=>{
+const handleDrop = (event) => {
     event.preventDefault();
-    console.log(event);
-    setFiles(event.dataTransfer);
+    const fileList = event.dataTransfer.files;
+    const files = event.target.files;
+    console.log("fileList",typeof fileList);
+ 
+    const fileNames = Array.from(fileList); // Extract file names from FileList
+    setFilesname(fileNames); // Set state with array of file names
+        
+    setFiles(fileList); // Set files state with FileList object
+     
+};
+const handleClassimage=(event)=>{
+    event.preventDefault();
+    const fileList = event.target.files;
+    const fileNames = Array.from(fileList);
+    setFilesname(fileNames);
+    setFiles(fileList);
 }
+
     return (
         <>
              
@@ -98,14 +119,15 @@ const handleDrop=(event)=>{
                     <input type="text" placeholder="Write Subject Name"className="form-control" value={subjectname} onChange={(e)=>Subjectname(e.target.value)} required/>
                       </div>
                       <br/>
-                       <div className="dragdrop" onDragOver={handleDragOver} onDrop={handleDrop}><h1>Drag and Drop Files to Upload</h1>
+                       <div className="dragdrop" onDragOver={handleDragOver} onDrop={handleDrop}> <h2 className="text-reset">Drag and Drop Files to Upload</h2>
                       <h1>Or</h1>
-                      <input type='file' onChange={(e)=>setFiles(e.target.files)} multiple hidden ref={inputRef} />
+                      <input type='file' onChange={handleClassimage} multiple hidden ref={inputRef} />
                       <button onClick={()=>inputRef.current.click()}>Select Files</button>
-                      
+                     {files && <p>Selected File:{files.length}</p>}
+                                   
                       </div>
                                         
-                      
+                      <br/>
 
                         <Button variant="primary" type="submit">Submit</Button>
                     </Form>

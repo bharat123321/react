@@ -22,9 +22,6 @@ import SubjectComponent from './Class/SubjectComponent'
 function App() {
     const { getToken } = AuthUser();
     const [loggedIn, setLoggedIn] = useState(!!getToken());
-
-   
- 
     return (
 
         <Router>
@@ -38,23 +35,23 @@ function App() {
                 {/* Public routes */}
                 {!loggedIn && (
                     <>
-                        <Route path="/login" element={<Login />} />
+                        <Route path="/login" element={<Login />} exact/>
                         <Route path="/register" element={<Register />} />
                     </>
                 )}
                 {/* Public routes */}
                 {loggedIn && (
                     <>
-                        <Route path="/:subjectname" element={<SubjectComponent />} /> {/* Route for SubjectComponent */}
-                        <Route path="/home" element={<Home />} />
-                        <Route path="/join" element={<JoinClass />} />
-                         <Route path="/create" element={<CreateClass />} />
-                        <Route path="/notification" element={<Notification />}/>
-                        <Route path="/chat" element ={<Chat />} />
+                       
+                        <Route path="/home" element={<Home />} Exact/>
+                        <Route path="/join" element={<JoinClass />} Exact/>
+                         <Route path="/create" element={<CreateClass />} Exact/>
+                        <Route path="/notification" element={<Notification />} Exact/>
+                        <Route path="/chat" element ={<Chat />} Exact/>
                         <Route path="/results" element={<Result />}/>
-                        <Route path="/studentdetail" element={<Studentdetail />}/>
-                         <Route path="/profile" element ={<UserProfile/>}/>
-                         
+                        <Route path="/studentdetail" element={<Studentdetail />} Exact/>
+                         <Route path="/profile" element ={<UserProfile/>} Exact/>
+                         <Route path="/:subjectname" element={<SubjectComponent />} exact/>
                     </>
                 )}
                 {/* Protected routes */}

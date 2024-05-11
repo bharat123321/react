@@ -7,7 +7,7 @@ import Register from '../component/Register'
 import JoinClass from '../dasboard/JoinClass';
 import {BrowserRouter , Routes , Route,Link} from 'react-router-dom'
 import { Button, Col, Container, Modal, Row } from "react-bootstrap";
-
+import LoadingBar from 'react-top-loading-bar'
 function CustomModal({ show, onHide }) {
     const joinclass=()=>{
         window.location.href="/join";
@@ -41,6 +41,7 @@ function Login()
      const[InputErrorList,setInputErrorList] = useState();
     const[loading,setLoading] = useState(false)
    const [show, setShow] = useState(false);
+   const [progress, setProgress] = useState(0)
   const handleClose = () =>{
  
  setShow(false);
@@ -49,11 +50,14 @@ function Login()
    
     const submitForm = (event)=> {
         event.preventDefault();
-         setLoading(true);
+
+         setProgress(30);
          //axios.post('http://127.0.0.1:8000/api/login',data).then(res=>{
             http.post('/login',data).then((res)=>{
+                setProgress(50);
                 console.log(res.data)
                setToken(res.data.user,res.data.access_token);
+            
             setLoading(false);
            
             if(res.data.first_time_login==1)
@@ -64,7 +68,7 @@ function Login()
             else{
                window.location.href = '/home'; 
             }
-
+            setProgress(100);    
               
         }).catch(function(error){
             if(error.response){
@@ -81,7 +85,11 @@ function Login()
     }
 	return(
    <>
-        
+        <LoadingBar
+        color='#f11946'
+        progress={progress}
+        onLoaderFinished={() => setProgress(0)}
+      />
     <div className="container">
     <div className="row justify-content-center">
         <div className="col-md-6">
@@ -104,7 +112,7 @@ function Login()
   <label> <input type="checkbox" className="incenter"/>  Remember me</label>
   </div>
   <span className="text-danger">{InputErrorList}</span> 
-  <button className="btn btn-success">Submits</button>
+  <button className="btn btn-success">Submit</button>
     </form> 
       </div>
       </div>

@@ -1,40 +1,154 @@
-import React,{useState,useEffect} from 'react';
-import Auth from '../navbar_design/Auth';
+import React, { useState, useEffect } from 'react';
+import AuthUser from '../component/AuthUser';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
-import AuthUser from '../component/AuthUser';
-function Home() {
+import LoadingBar from 'react-top-loading-bar';
+import Carousel from 'react-bootstrap/Carousel';
+import { BiDotsVertical } from 'react-icons/bi';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 
-    useEffect(()=>{
-      
-          fetchdata();
-    },[]);
-    const {http} = AuthUser();
-    const fetchdata = ()=>{
-        http.get('/fetchdata').then((res)=>{
-            
-        })
+function Home() {
+    const [loading, setLoading] = useState(true);
+    const [progress, setProgress] = useState(0);
+    const [userData, setUserData] = useState([]);
+    const [openDropdowns, setOpenDropdowns] = useState([]); // Array to track dropdown visibility
+    const { http } = AuthUser();
+    const [blurPages, setBlurPages] = useState(false);
+
+  const handleBlurToggle = () => {
+    setBlurPages(true);
+  };
+
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        // Initialize openDropdowns array with false values for each user
+        setOpenDropdowns(new Array(userData.length).fill(false));
+    }, [userData]);
+
+    const fetchData = () => {
+        http.get('/fetchdata')
+            .then((res) => {
+                const data = res.data.data;
+                setUserData(data);
+                setLoading(false);
+                setProgress(100);
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+                setLoading(false);
+                setProgress(100);
+            });
     }
-    
+
+    const formatTime = (timestamp) => {
+        const now = new Date(); // Current time
+        const uploadTime = new Date(timestamp); // Time of the image upload
+
+        // Calculate the time difference in milliseconds
+        const difference = now.getTime() - uploadTime.getTime();
+
+        // Convert milliseconds to seconds
+        const differenceInSeconds = Math.floor(difference / 1000);
+
+        // Define the time units and their respective thresholds
+        const timeUnits = [
+            { unit: 'year', threshold: 31536000 },
+            { unit: 'week', threshold: 604800 },
+            { unit: 'day', threshold: 86400 },
+            { unit: 'hour', threshold: 3600 },
+            { unit: 'minute', threshold: 60 },
+            { unit: 'second', threshold: 1 }
+        ];
+
+        // Iterate through time units to find the appropriate unit to display
+        for (const unit of timeUnits) {
+            if (differenceInSeconds >= unit.threshold) {
+                const value = Math.floor(differenceInSeconds / unit.threshold);
+                return `${value} ${unit.unit}${value !== 1 ? 's' : ''} ago`;
+            }
+        }
+
+        // If the time difference is less than 1 second
+        return `just now`;
+    };
+
+    const handleDropDown = (index) => {
+        const updatedDropdowns = [...openDropdowns];
+        updatedDropdowns[index] = !updatedDropdowns[index]; // Toggle visibility for the clicked user's dropdown
+        setOpenDropdowns(updatedDropdowns);
+    }
+
     return (
         <>
-            
-            <Card style={{ margin: '0px 10% 0px' }}>
-                <Card.Header>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h4 style={{ cursor: 'pointer' }}>Notes</h4>
-                        <h5 style={{ cursor: 'pointer' }}>Download</h5>
-                    </div>
-                </Card.Header>
-                <Card.Header className="text-muted">2 days ago</Card.Header>
-                <Card.Body>
-                 <Card.Img variant="bottom" src="./logo192.png" style={{ width: "40%", margin: "auto", display: "block" }}/>
-                 <br/>
-                    <Button variant="primary">Go somewhere</Button>
-                </Card.Body>
+            <LoadingBar
+                color='#f11946'
+                progress={progress}
+                onLoaderFinished={() => setProgress(0)}
+            />
 
-                
-            </Card>
+            {!loading ? (
+                <div style={{ margin: '0px 10%' }}>
+                    {userData.map((item, index) => (
+                        <>
+                        <Card key={index} style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
+                            <div>
+                                <Card.Header style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Card.Img
+                                        variant="bottom"
+                                        src={"http://127.0.0.1:8000/avatar/" + item.avatar}
+                                        style={{ width: "5%", borderRadius: "5%", marginLeft: "0px", display: "block" }}
+                                    />
+                                    <h4 style={{ paddingLeft: "10px" }}>{item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)}</h4>
+                                    <br />
+                                    <div className="HiddenIcon">
+                                        <BiDotsVertical onClick={() => handleDropDown(index)} className="dropbtn" />
+                                        <div id={`myDropdown-${index}`} style={{ display: openDropdowns[index] ? 'block' : 'none' }} className="dropdown-content">
+                                            <a href="#">Download</a>
+                                            <a href="#">Preview</a>
+                                        </div>
+                                    </div>
+                                </Card.Header>
+                                <h6 style={{ paddingLeft: "49px" }}> {formatTime(item.created_at)}</h6>
+                                <hr />
+                                <Card.Body>
+                                    {/* Render carousel for multiple images */}
+                                    {item.image && (
+                                        <Carousel>
+                                            {item.image.split(',').map((imageName, imageIndex) => (
+                                                <Carousel.Item key={imageIndex}>
+                                                    <img
+                                                        className="d-block w-100"
+                                                        src={"http://127.0.0.1:8000/images/" + imageName.trim()}
+                                                        alt={`Image ${imageIndex}`}
+                                                    />
+                                                </Carousel.Item>
+                                            ))}
+                                        </Carousel>
+                                    )}
+
+                                    {item.file && (
+                                        <>
+                                            <iframe src={"http://127.0.0.1:8000/files/" + item.file} height="500px" className="d-block w-100"></iframe>
+                                          {/* Overlay to blur pages */}
+      {blurPages &&  <div className="overlay"></div>}
+      <button onClick={handleBlurToggle}>Blur Pages</button>
+                                                    </>
+                                    )}
+
+                                </Card.Body>
+                            </div>
+                        </Card>
+                        <br/>
+                        </>
+                    ))}
+                </div>
+            ) : (
+                <div><h1>Loading...</h1></div>
+            )}
         </>
     )
 }

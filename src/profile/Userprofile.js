@@ -26,7 +26,7 @@ function Userprofile() {
                             onClick={() => handleButtonClick('userDetail')}
                             className={`btn btn-outline-dark mr-3 ${activeButton === 'userDetail' ?'active':''}`}
                         >
-                            User Detail
+                            Profile Update
                         </button>
                         <div className="mx-2"></div>
                         <button

@@ -10,7 +10,9 @@ import AuthUser from '../component/AuthUser';
 import { Modal } from "react-bootstrap";
 import Form from 'react-bootstrap/Form';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,Navigate } from 'react-router-dom';
+import LoadingBar from 'react-top-loading-bar'
+import LazyLoad from 'react-lazy-load';
 function CustomModal({ show, onHide }) {
 
    const navigate = useNavigate();
@@ -144,7 +146,6 @@ const handleImageChange = (e,fileType) => {
       image: 0,
       video: 0
     };
-
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (fileType === 'image' && file.type.startsWith('image/')) {
@@ -199,7 +200,7 @@ const handleImageChange = (e,fileType) => {
                 : `Choose a Video (${selectedFileCounts.video} selected)`
             ) : ''}
           </label>
-          <input
+           <input
             type="file"
             id="fileInput"
             onChange={(e) =>{handleFileChange(e, event.toLowerCase());handleImageChange(e,event.toLowerCase());}}
@@ -208,7 +209,9 @@ const handleImageChange = (e,fileType) => {
           />
           <span className="text-danger">{InputErrorList.file}</span> 
 
+         
         </Modal.Body>
+
         {message && <p>{message}</p>}
         <Modal.Footer style={{ display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="primary" type="submit">Submit</Button>
@@ -216,6 +219,7 @@ const handleImageChange = (e,fileType) => {
             <Button variant="secondary" onClick={handleClose}>Close</Button>
           </div>
         </Modal.Footer>
+      
       </Form>
     </Modal>
   );
@@ -229,6 +233,9 @@ function Auth() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [check,setCheck] = useState(false);
   const[storedata,setStoredata]=useState([]);
+ const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+   const [progress, setProgress] = useState(0);
     const {http} = AuthUser();
   const handleClose = () =>{
     setShow(false);
@@ -270,23 +277,68 @@ function Auth() {
  useEffect(()=>{
   fetchuserdata();
 },[]);
+ useEffect(()=>{
+   userverify();
+},[]);
+useEffect(() => {
+        if (progress === 100) {
+            setLoading(false); // Progress completed, set loading to false
+        }
+    }, [progress]);
+const userverify =()=>{
+  http.get("/userverify").then((res)=>{
+    console.log(res.data.status);
+     setProgress(40);
+     if(res.data.status===200)
+     {
+      
+      setAuthenticated(true);
+     }
+      setProgress(100)
+  }).catch((error)=>{
+      if(error.response.status===401)
+    {
+      setAuthenticated(false);
+      logout();
+    }
+  })
+}
 const fetchuserdata=()=>{
    http.get("/fetchUser").then((res)=>{
-    console.log(res.data.check);
-     const userData = res.data;
+    
+    if(res.data.check=='')
+    {
+       setCheck(false);
+       console.log('empty')
+    }
+    else
+    {
+       const userData = res.data;
                 let hasId = false;
                  setStoredata(res.data.check);
                 setCheck(true);
+    }
+    
    }).catch(function(event){
-    console.log(event.response.error)
+    
    })
 }
 const navigateToSubject = (subjectname) => {
       
         navigate(`/${subjectname}`);
     }
+    
+ 
   return (
     <>
+
+     <LoadingBar
+        color='#f11946'
+        progress={progress}
+        onLoaderFinished={() => setProgress(0)}
+      />
+      {!loading && 
+      <>
       {['sm'].map((expand) => (
         <Navbar key={expand} expand={expand} className="bg-body-tertiary mb-3">
           <Container fluid>
@@ -345,6 +397,9 @@ const navigateToSubject = (subjectname) => {
           </Container>
         </Navbar>
       ))}
+      
+      </>
+    }
      <ChangeableMovement event={selectedEvent} show={show} setShow={setShow} handleEventSelection={handleEventSelection} />
      
       <CustomModal show={showclass} onHide={handleClose} />
