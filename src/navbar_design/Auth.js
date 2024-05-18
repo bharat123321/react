@@ -5,13 +5,13 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
-import { Link } from 'react-router-dom';
+import { Link ,useLocation} from 'react-router-dom';
 import AuthUser from '../component/AuthUser';
 import { Modal } from "react-bootstrap";
 import Form from 'react-bootstrap/Form';
 import axios from 'axios';
 import { useNavigate,Navigate } from 'react-router-dom';
-import LoadingBar from 'react-top-loading-bar'
+import LoadingBar from 'react-top-loading-bar' 
 import LazyLoad from 'react-lazy-load';
 function CustomModal({ show, onHide }) {
 
@@ -226,6 +226,9 @@ const handleImageChange = (e,fileType) => {
 }
 
 function Auth() {
+    const { pathname } = useLocation();
+  const isHome = pathname === '/home';
+  const isNotification = pathname==='/notification';
      const navigate = useNavigate();
    const { logout } = AuthUser();
   const [show, setShow] = useState(false);
@@ -236,6 +239,9 @@ function Auth() {
  const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
    const [progress, setProgress] = useState(0);
+   const [isHomeClicked, setIsHomeClicked] = useState(false);
+   const [upload,setUpload]=useState(false);
+   const [isNotificationClicked,setNotification]=useState(false);
     const {http} = AuthUser();
   const handleClose = () =>{
     setShow(false);
@@ -316,6 +322,7 @@ const fetchuserdata=()=>{
        const userData = res.data;
                 let hasId = false;
                  setStoredata(res.data.check);
+                 
                 setCheck(true);
     }
     
@@ -328,7 +335,19 @@ const navigateToSubject = (subjectname) => {
         navigate(`/${subjectname}`);
     }
     
- 
+ const handleClick = () => {
+        setIsHomeClicked(true);
+        setUpload(false);
+    }
+    const handleUpload=()=>{
+      setUpload(true);
+      setIsHomeClicked(false);
+      setNotification(false);
+    }
+    const handleNotification=()=>{
+      setNotification(true);
+      setUpload(false);
+    }
   return (
     <>
 
@@ -355,43 +374,48 @@ const navigateToSubject = (subjectname) => {
               </Offcanvas.Header>
               <Offcanvas.Body>
               <Nav className="mr-3 flex-grow-1 pe-3">
-              <Nav.Link as={Link} to="/home" className="nav-link">Home</Nav.Link>
-              <hr className="dropdown-divider" />
-              <NavDropdown 
-                title="Upload" 
-                id={`offcanvasNavbarDropdown-expand-${expand}`}>
+             <Nav.Link as={Link} to="/home" className="nav-link" onClick={handleClick}>
+                <img src={isHome ? "./image/whitehome.png" : "./image/blackhome.png"} width="50px" height="50px" alt="Home"/>
+            </Nav.Link>
+                  <NavDropdown title={<i className="bi bi-upload bi-4" style={{ fontSize: '40px' }}></i>} 
+                id={`offcanvasNavbarDropdown-expand-${expand}`} noCaret>
                 <NavDropdown.Item as={Link} to="/file" onClick={handleFile}>File</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/image" onClick={handleImage}>Image</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/video" onClick={handleVideo}>Video</NavDropdown.Item>
               </NavDropdown>
-              <Nav.Link as={Link} to="/notification" className="nav-link">Notification</Nav.Link>
+              <Nav.Link as={Link} to="/notification" className="nav-link" onClick={handleNotification}>  
+              <img src={isNotification ? "./image/whitenotification.png" : "./image/blacknotification.png"} width="50px" height="50px" alt="Notification"/>
+          </Nav.Link>
              
 
-                 {check && <NavDropdown title="ClassNote" >
+                 {check && <NavDropdown title={<>
+                  <img src={"./image/classnote.png"}width="50px"height="50px" /></>} >
 
                                         {storedata.map((item, index) => (
-                                <NavDropdown.Item key={index} onClick={() => navigateToSubject(item.subjectname)}>
+                                <NavDropdown.Item key={index} onClick={() => navigateToSubject(item.class_code)}>
                             {item.subjectname}
+
                         </NavDropdown.Item>          ))}
                                     </NavDropdown>
                                 }
                                             
                                           
                 </Nav>
-                <Nav className="justify-content-end">
-                  <NavDropdown title="Setting" id={`offcanvasNavbarDropdown-expand-${expand}`} align={{ sm: 'end' }}>
-                    <NavDropdown.Item as={Link} to='/profile'>Your Profile</NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item href="#action4">Your Project</NavDropdown.Item>
-                    <NavDropdown.Divider />
-                     <NavDropdown.Item onClick={handleClass}>Join or Create Class</NavDropdown.Item>
-                    <NavDropdown.Divider />
-                   
-                     <NavDropdown.Item as={Link} to="/results">Results</NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item as={Link} to="/Logout" onClick={logoutUser}>Logout</NavDropdown.Item>
-                  </NavDropdown>
-                </Nav>
+            <Nav className="justify-content-end">
+  <NavDropdown title={<i className="bi bi-gear bi-2x"style={{ fontSize: '40px' }}></i>} id={`offcanvasNavbarDropdown-expand-${expand}`} align={{ sm: 'end' }} noCaret>
+    <NavDropdown.Item as={Link} to='/profile'>Your Profile</NavDropdown.Item>
+    <NavDropdown.Divider />
+    <NavDropdown.Item as={Link} to="/project">Your Project</NavDropdown.Item>
+    <NavDropdown.Divider />
+    <NavDropdown.Item onClick={handleClass}>Join or Create Class</NavDropdown.Item>
+    <NavDropdown.Divider />
+    <NavDropdown.Item as={Link} to="/results">Results</NavDropdown.Item>
+    <NavDropdown.Divider />
+    <NavDropdown.Item as={Link} to="/Logout" onClick={logoutUser}>Logout</NavDropdown.Item>
+  </NavDropdown>
+</Nav>
+
+
               </Offcanvas.Body>
             </Navbar.Offcanvas>
           </Container>

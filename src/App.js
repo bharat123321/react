@@ -16,9 +16,10 @@ import Register from './component/Register'; // Import your Register component
 import React, { useState, useEffect } from 'react';
 import "bootstrap/dist/css/bootstrap.min.css"
 import axios from 'axios';
-import UserProfile from './profile/Userprofile'
+import UserProfile from './profile/Userprofile';
+import UserProject from './project/UserProject';
 import './App.css'
-import SubjectComponent from './Class/SubjectComponent'
+import SubjectComponent from './Class/JoinComponent'
 function App() {
     const { getToken } = AuthUser();
     const [loggedIn, setLoggedIn] = useState(!!getToken());
@@ -51,6 +52,7 @@ function App() {
                         <Route path="/results" element={<Result />}/>
                         <Route path="/studentdetail" element={<Studentdetail />} Exact/>
                          <Route path="/profile" element ={<UserProfile/>} Exact/>
+                         <Route path="/project" element ={<UserProject/>} Exact/>
                          <Route path="/:subjectname" element={<SubjectComponent />} exact/>
                     </>
                 )}

@@ -75,7 +75,7 @@ const Userdetail = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-6">
-              <div className="form-row">
+              <div className="form-row" style={{textAlign:"center"}}>
                 <label htmlFor="fileInput" className="custom-file-label">
                   <h4 className="uploadProfile">Upload Profile</h4>
                 </label><br />

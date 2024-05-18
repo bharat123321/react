@@ -4,36 +4,38 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import LoadingBar from 'react-top-loading-bar';
 import Carousel from 'react-bootstrap/Carousel';
+import Dropdown from 'react-bootstrap/Dropdown';
 import { BiDotsVertical } from 'react-icons/bi';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+import { pdfjs } from 'react-pdf';
+import { Document, Page } from 'react-pdf';
+import PDFViewer from './PDFViewer';
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 function Home() {
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
     const [userData, setUserData] = useState([]);
-    const [openDropdowns, setOpenDropdowns] = useState([]); // Array to track dropdown visibility
     const { http } = AuthUser();
-    const [blurPages, setBlurPages] = useState(false);
+    const [showPDF, setShowPDF] = useState(true);
+    const [pdf, setPdf] = useState(null); // State to store PDF object
+    const [numPages, setNumPages] = useState();
+    const [pageNumber, setPageNumber] = useState(1);
 
-  const handleBlurToggle = () => {
-    setBlurPages(true);
-  };
-
+    function onDocumentLoadSuccess({ numPages }) {
+        setNumPages(numPages);
+    } 
 
     useEffect(() => {
         fetchData();
     }, []);
-
-    useEffect(() => {
-        // Initialize openDropdowns array with false values for each user
-        setOpenDropdowns(new Array(userData.length).fill(false));
-    }, [userData]);
 
     const fetchData = () => {
         http.get('/fetchdata')
             .then((res) => {
                 const data = res.data.data;
                 setUserData(data);
+                console.log(data);
                 setLoading(false);
                 setProgress(100);
             })
@@ -76,11 +78,17 @@ function Home() {
         return `just now`;
     };
 
-    const handleDropDown = (index) => {
-        const updatedDropdowns = [...openDropdowns];
-        updatedDropdowns[index] = !updatedDropdowns[index]; // Toggle visibility for the clicked user's dropdown
-        setOpenDropdowns(updatedDropdowns);
+    const loadPdf = async (pdfUrl) => {
+        console.log(pdf);
+        alert(pdf);
     }
+
+    useEffect(() => {
+        if (pdf) {
+            // Do something with the PDF object
+            console.log('PDF loaded:', pdf);
+        }
+    }, [pdf]);
 
     return (
         <>
@@ -105,11 +113,15 @@ function Home() {
                                     <h4 style={{ paddingLeft: "10px" }}>{item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)}</h4>
                                     <br />
                                     <div className="HiddenIcon">
-                                        <BiDotsVertical onClick={() => handleDropDown(index)} className="dropbtn" />
-                                        <div id={`myDropdown-${index}`} style={{ display: openDropdowns[index] ? 'block' : 'none' }} className="dropdown-content">
-                                            <a href="#">Download</a>
-                                            <a href="#">Preview</a>
-                                        </div>
+                                        <Dropdown>
+                                            <Dropdown.Toggle variant="link" bsPrefix="p-0">
+                                                <BiDotsVertical />
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu>
+                                                <Dropdown.Item href="#">Download</Dropdown.Item>
+                                                <Dropdown.Item href="#">Preview</Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
                                     </div>
                                 </Card.Header>
                                 <h6 style={{ paddingLeft: "49px" }}> {formatTime(item.created_at)}</h6>
@@ -131,14 +143,8 @@ function Home() {
                                     )}
 
                                     {item.file && (
-                                        <>
-                                            <iframe src={"http://127.0.0.1:8000/files/" + item.file} height="500px" className="d-block w-100"></iframe>
-                                          {/* Overlay to blur pages */}
-      {blurPages &&  <div className="overlay"></div>}
-      <button onClick={handleBlurToggle}>Blur Pages</button>
-                                                    </>
+                                        <PDFViewer pdfUrl={`http://127.0.0.1:8000/files/${item.file}`} />
                                     )}
-
                                 </Card.Body>
                             </div>
                         </Card>
