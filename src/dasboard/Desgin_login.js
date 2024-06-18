@@ -1,30 +1,234 @@
-import Nav_bar from '../navbar_design/Nav_bar';
-import Button from 'react-bootstrap/Button';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
+import LoadingBar from 'react-top-loading-bar';
+import Carousel from 'react-bootstrap/Carousel';
+import Dropdown from 'react-bootstrap/Dropdown';
+import { Modal, Spinner } from "react-bootstrap";
+import Form from 'react-bootstrap/Form';
+import { BiDotsVertical } from 'react-icons/bi';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGlobeAmericas } from '@fortawesome/free-solid-svg-icons';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
+import RenderPdf from './RenderPdf';
+import Fetchpdf from './Fetchpdf';
+const TemplateCard = () => (
+    <Card style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
+        <Card.Header style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: "5%", height: "5%", borderRadius: "50%", backgroundColor: "#ccc" }} />
+            <h4 style={{ paddingLeft: "10px", backgroundColor: "#ccc", width: "50%" }}>&nbsp;</h4>
+        </Card.Header>
+        <hr />
+        <Card.Body>
+            <div style={{ width: "100%", height: "200px", backgroundColor: "#eee" }} />
+            <br />
+            <h6 style={{ backgroundColor: "#eee", width: "30%" }}>&nbsp;</h6>
+            <h6 style={{ position: "absolute", right: "0px", bottom: "17px", backgroundColor: "#eee", width: "30%" }}>&nbsp;</h6>
+        </Card.Body>
+    </Card>
+);
 
-function Desgin_login() {
+function Design_login() {
+    const [loading, setLoading] = useState(true);
+    const [progress, setProgress] = useState(0);
+    const [userData, setUserData] = useState([]);
+    const [showUploadOptions, setShowUploadOptions] = useState(false);
+    const [show, setShow] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+
+    const [word, setWord] = useState('');
+    const [definition, setDefinition] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = () => {
+        axios.get('http://127.0.0.1:8000/api/fetchpublicdata',{
+            headers: {
+    'Content-Type': 'application/json',
+  },
+   withCredentials: true, 
+        })
+            .then((res) => {
+                const data = res.data.data;
+                setUserData(data);
+                setLoading(false);
+                setProgress(100);
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+                setLoading(false);
+                setProgress(100);
+            });
+    };
+
+    const lookupWord = async (e) => {
+        e.preventDefault();
+        if (!word.trim()) {
+            alert('Please enter a word.');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await axios.get(`http://localhost:8000/api/lookup/${word}`);
+            setDefinition(res.data[0]?.meanings[0]?.definitions[0]?.definition || 'Definition not found');
+        } catch (error) {
+            setDefinition(error.response?.data?.message || 'Error fetching definition');
+        }
+        setIsLoading(false);
+    };
+
+    const handleDownload = async (id) => {
+        try {
+            const response = await axios.get(`http://localhost:8000/api/downloadpdf/${id}`, {
+                responseType: 'blob',
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'document.pdf');
+            document.body.appendChild(link);
+            link.click();
+        } catch (error) {
+            console.error('Error downloading the file', error);
+            alert('Error downloading the file. Please try again.');
+        }
+    };
+
+    const handleUploadClick = () => setShowUploadOptions(!showUploadOptions);
+
+    const handleEventSelection = (event) => {
+        setSelectedEvent(event);
+        setShow(true);
+    };
+
+    const handleFile = () => handleEventSelection('File');
+
+    const handleImage = () => handleEventSelection('Image');
+
+    const handleVideo = () => handleEventSelection('Video');
+
+    const handleClose = () => setShow(false);
+
+    const handleModalOpen = () => setShowModal(true);
+    const handleModalClose = () => setShowModal(false);
 
     return (
         <>
-             
-            <Card style={{ margin: '0px 10% 0px' }}>
-                <Card.Header>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h4 style={{ cursor: 'pointer' }}>Notes</h4>
-                        <h5 style={{ cursor: 'pointer' }}><img src="./image/threedot.png" 
-                        style={{width:"30px"}}/></h5>
-                    </div>
-                </Card.Header>
-                <Card.Body>
-                 <Card.Img variant="bottom" src="./logo192.png" style={{ width: "40%", margin: "auto", display: "block" }}/>
-                 <br/>
-                    <Button variant="primary">Go somewhere</Button>
-                </Card.Body>
+            <LoadingBar
+                color='#f11946'
+                progress={progress}
+                onLoaderFinished={() => setProgress(0)}
+            />
 
-                <Card.Footer className="text-muted">2 days ago</Card.Footer>
-            </Card>
+            <div style={{ margin: '0px 10%' }}>
+                {!loading ? userData.map((item, index) => (
+                    <React.Fragment key={index}>
+                        <Card style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
+                            <Card.Header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Card.Img
+                                        variant="bottom"
+                                        src={`http://localhost:8000/avatar/${item.avatar}`}
+                                        style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
+                                    />
+                                    <div>
+                                        <h4 style={{ margin: 0 }}>{item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.lastname}</h4>
+                                        <h6 style={{ fontSize: "12px", color: "#888" }}><FontAwesomeIcon icon={faGlobeAmericas} /> {item.formatted_date}</h6>
+                                    </div>
+                                </div>
+                                <div className="HiddenIcon" style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                                    <Dropdown>
+                                        <Dropdown.Toggle variant="link" bsPrefix="p-2">
+                                            <BiDotsVertical />
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item as={Link} to={`/convertimgtopdf/${item.id}`}>Preview</Dropdown.Item>
+                                            <Dropdown.Item onClick={() => handleDownload(item.id)}>Download</Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </div>
+                            </Card.Header>
+                            <hr />
+                            <Card.Body>
+                                {item.image && (
+                                    <>
+                                        <Carousel>
+                                            {item.image.split(',').map((imageName, imageIndex) => (
+                                                <Carousel.Item key={imageIndex}>
+                                                    <img
+                                                        className="d-block w-100"
+                                                        src={`http://localhost:8000/images/${imageName.trim()}`}
+                                                        alt={`Image ${imageIndex}`}
+                                                    />
+                                                </Carousel.Item>
+                                            ))}
+                                        </Carousel>
+                                        <br />
+                                        <h6>Viewed: 1223</h6>
+                                        <h6 style={{ position: "absolute", right: "0px", bottom: "17px" }}>Downloaded: 1223</h6>
+                                    </>
+                                )}
+
+                                {item.file && (
+                                    <Fetchpdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
+                                )}
+                            </Card.Body>
+                        </Card>
+                        <br />
+                    </React.Fragment>
+                )) : (
+                    Array.from({ length: 3 }).map((_, index) => (
+                        <TemplateCard key={index} />
+                    ))
+                )}
+
+                <Button variant="primary" onClick={handleModalOpen} style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: '9999' }}>
+                    Lookup Word
+                </Button>
+
+                <Modal show={showModal} onHide={handleModalClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Dictionary Lookup</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form onSubmit={lookupWord}>
+                            <Form.Group controlId="formWord">
+                                <Form.Label>Enter Word</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter word"
+                                    value={word}
+                                    onChange={(e) => setWord(e.target.value)}
+                                />
+                            </Form.Group>
+                            <Button variant="primary" type="submit" disabled={isLoading}>
+                                {isLoading ? <Spinner animation="border" size="sm" /> : 'Search'}
+                            </Button>
+                        </Form>
+                        {definition && (
+                            <Card style={{ marginTop: '20px' }}>
+                                <Card.Body>
+                                    <strong>Definition:</strong> {definition}
+                                </Card.Body>
+                            </Card>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleModalClose}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </div>
         </>
-    )
+    );
 }
 
-export default Desgin_login;
+export default Design_login;

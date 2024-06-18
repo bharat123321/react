@@ -8,18 +8,21 @@ import CreateClass from './dasboard/CreateClass';
 import Notification from './dasboard/Notification';
 import Chat from './dasboard/Chat';
 import Result from './dasboard/Results';
+import Book from './dasboard/Book';
 import Desgin_login from './dasboard/Desgin_login';
-import Design_dashboard from './dasboard/Design_dashboard';
 import Studentdetail from './Result/Studentdetail';
 import Login from './component/Login'; // Import your Login component
 import Register from './component/Register'; // Import your Register component
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import "bootstrap/dist/css/bootstrap.min.css"
-import axios from 'axios';
 import UserProfile from './profile/Userprofile';
 import UserProject from './project/UserProject';
+import RenderPdf from './dasboard/RenderPdf';
+import Fetchpdf from './dasboard/Fetchpdf';
 import './App.css'
 import SubjectComponent from './Class/JoinComponent'
+import SearchDetail from './dasboard/SearchDetail'; 
+
 function App() {
     const { getToken } = AuthUser();
     const [loggedIn, setLoggedIn] = useState(!!getToken());
@@ -38,6 +41,7 @@ function App() {
                     <>
                         <Route path="/login" element={<Login />} exact/>
                         <Route path="/register" element={<Register />} />
+                        <Route path="/Fetchpdf" element={<Fetchpdf/>}/>
                     </>
                 )}
                 {/* Public routes */}
@@ -53,6 +57,9 @@ function App() {
                         <Route path="/studentdetail" element={<Studentdetail />} Exact/>
                          <Route path="/profile" element ={<UserProfile/>} Exact/>
                          <Route path="/project" element ={<UserProject/>} Exact/>
+                       <Route path="/RenderPdf" element={<RenderPdf/>}/>
+                       <Route path ="/book" element={<Book/>} />
+                       <Route path="/searchdetail/:id" element={<SearchDetail />} />
                          <Route path="/:subjectname" element={<SubjectComponent />} exact/>
                     </>
                 )}

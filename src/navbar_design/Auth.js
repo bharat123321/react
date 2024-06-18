@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,useRef } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -12,6 +12,12 @@ import Form from 'react-bootstrap/Form';
 import axios from 'axios';
 import { useNavigate,Navigate } from 'react-router-dom';
 import LoadingBar from 'react-top-loading-bar' 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBook } from '@fortawesome/free-solid-svg-icons';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FormControl, InputGroup, ListGroup, Button as BsButton } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+ 
 import LazyLoad from 'react-lazy-load';
 function CustomModal({ show, onHide }) {
 
@@ -224,209 +230,310 @@ const handleImageChange = (e,fileType) => {
     </Modal>
   );
 }
+// SearchBox component
+function SearchBox({ searchTerm, handleSearchChange, searchResults, handleSearchClose }) {
+  const searchBoxRef = useRef(null);
+
+  // Close search box when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target)) {
+        handleSearchClose();
+      }
+    };
+
+    if (searchBoxRef.current) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [searchBoxRef, handleSearchClose]);
+const handleSearchDetail=()=>{
+  handleSearchClose();
+}
+  return (
+    <div className="search-overlay">
+      <div className="search-box"ref={searchBoxRef}>
+        <InputGroup className="mb-3">
+          <FormControl
+            placeholder="Search..."
+            aria-label="Search"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            autoFocus
+          />
+          <Button variant="secondary" onClick={handleSearchClose}>
+            &times;
+          </Button>
+        </InputGroup>
+        {searchResults.length > 0 && (
+          <ListGroup className="search-results">
+            {searchResults.map((result, index) => (
+              <ListGroup.Item key={index}>
+                <Link to={`/searchdetail/${result.id}`} className="nav-link" onClick={handleSearchDetail}>
+               <strong>{result.topic}</strong>  
+                  <br />
+                  {result.description}
+                  </Link>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 
 function Auth() {
-    const { pathname } = useLocation();
-  const isHome = pathname === '/home';
-  const isNotification = pathname==='/notification';
-     const navigate = useNavigate();
-   const { logout } = AuthUser();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { logout, http } = AuthUser();
+
   const [show, setShow] = useState(false);
-  const [showclass, setClass] = useState(false);
+  const [showClass, setShowClass] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [check,setCheck] = useState(false);
-  const[storedata,setStoredata]=useState([]);
- const [authenticated, setAuthenticated] = useState(false);
+  const [check, setCheck] = useState(false);
+  const [storeData, setStoreData] = useState([]);
+  const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-   const [progress, setProgress] = useState(0);
-   const [isHomeClicked, setIsHomeClicked] = useState(false);
-   const [upload,setUpload]=useState(false);
-   const [isNotificationClicked,setNotification]=useState(false);
-    const {http} = AuthUser();
-  const handleClose = () =>{
+  const [progress, setProgress] = useState(0);
+  const [isHomeClicked, setIsHomeClicked] = useState(false);
+  const [isNotificationClicked, setIsNotificationClicked] = useState(false);
+  const [isUploadClicked, setIsUploadClicked] = useState(false);
+  
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleSearchToggle = () => {
+    setSearchVisible(true);
+     
+      setSearchTerm("");
+      setSearchResults([]);
+    
+  };
+
+  const handleSearchClose = () => {
+    setSearchVisible(false);
+    
+  };
+
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    console.log(term);
+   if (term) {
+      try {
+        const response = http.get(`/search`, {
+          params: { term }
+        }).then((res)=>{
+          setSearchResults(res.data.resultdata);
+          console.log(res.data.resultdata);
+        });
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+      }
+        } else {
+      setSearchResults([]);
+    }
+  };
+
+  const handleClose = () => {
     setShow(false);
-    setClass(false);
+    setShowClass(false);
   }
 
   const handleEventSelection = (event) => {
     setSelectedEvent(event);
     setShow(true);
-  };
-
-  const handleFile = (event) => {
-    event.preventDefault();
-    setSelectedEvent('File');
-    setShow(true);
   }
 
-  const handleImage = (event) => {
-    event.preventDefault();
-    setSelectedEvent('Image');
-    setShow(true);
-  }
-
-  const handleVideo = (event) => {
-    event.preventDefault();
-    setSelectedEvent('Video');
-    setShow(true);
-  }
-
-  const handleClass = () =>{
+  const handleClass = () => {
     setSelectedEvent('Class');
-    setClass(true);
+    setShowClass(true);
   }
 
   const logoutUser = () => {
     logout();
   }
-   
- useEffect(()=>{
-  fetchuserdata();
-},[]);
- useEffect(()=>{
-   userverify();
-},[]);
-useEffect(() => {
-        if (progress === 100) {
-            setLoading(false); // Progress completed, set loading to false
-        }
-    }, [progress]);
-const userverify =()=>{
-  http.get("/userverify").then((res)=>{
-    console.log(res.data.status);
-     setProgress(40);
-     if(res.data.status===200)
-     {
-      
-      setAuthenticated(true);
-     }
-      setProgress(100)
-  }).catch((error)=>{
-      if(error.response.status===401)
-    {
-      setAuthenticated(false);
-      logout();
-    }
-  })
-}
-const fetchuserdata=()=>{
-   http.get("/fetchUser").then((res)=>{
-    
-    if(res.data.check=='')
-    {
-       setCheck(false);
-       console.log('empty')
-    }
-    else
-    {
-       const userData = res.data;
-                let hasId = false;
-                 setStoredata(res.data.check);
-                 
-                setCheck(true);
-    }
-    
-   }).catch(function(event){
-    
-   })
-}
-const navigateToSubject = (subjectname) => {
-      
-        navigate(`/${subjectname}`);
-    }
-    
- const handleClick = () => {
-        setIsHomeClicked(true);
-        setUpload(false);
-    }
-    const handleUpload=()=>{
-      setUpload(true);
+
+  const handleClick = (icon) => {
+    if (icon === 'home') {
+      setIsHomeClicked(true);
+      setIsNotificationClicked(false);
+      setIsUploadClicked(false);
+    } else if (icon === 'notification') {
       setIsHomeClicked(false);
-      setNotification(false);
+      setIsNotificationClicked(true);
+      setIsUploadClicked(false);
+    } else if (icon === 'upload') {
+      setIsHomeClicked(false);
+      setIsNotificationClicked(false);
+      setIsUploadClicked(true);
     }
-    const handleNotification=()=>{
-      setNotification(true);
-      setUpload(false);
+  }
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    userVerify();
+  }, []);
+
+  useEffect(() => {
+    if (progress === 100) {
+      setLoading(false); // Progress completed, set loading to false
     }
+  }, [progress]);
+
+  const userVerify = () => {
+    http.get("/userverify").then((res) => {
+      setProgress(40);
+      if (res.data.status === 200) {
+        setAuthenticated(true);
+      }
+      setProgress(100)
+    }).catch((error) => {
+      if (error.response.status === 401) {
+        setAuthenticated(false);
+        logout();
+      }
+    })
+  }
+
+  // State for navbar visibility
+  const [navbarVisible, setNavbarVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(window.scrollY);
+
+  useEffect(() => {
+   
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY) {
+        setNavbarVisible(false);
+      } else {
+        setNavbarVisible(true);
+      }
+      setLastScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+    useEffect(()=>{
+      fetchUserData();
+      userVerify();
+  
+    },[]);
+
+  const fetchUserData = () => {
+    http.get("/fetchUser").then((res) => {
+      if (res.data.check === '') {
+        setCheck(false);
+      } else {
+        setStoreData(res.data.check);
+        setCheck(true);
+      }
+    }).catch((event) => {
+      // Handle error
+    })
+  }
+
+  const navigateToSubject = (subjectName) => {
+    navigate(`/${subjectName}`);
+  }
+
   return (
     <>
-
-     <LoadingBar
+      <LoadingBar
         color='#f11946'
         progress={progress}
         onLoaderFinished={() => setProgress(0)}
       />
-      {!loading && 
-      <>
-      {['sm'].map((expand) => (
-        <Navbar key={expand} expand={expand} className="bg-body-tertiary mb-3">
-          <Container fluid>
-            <img src="./image/book.jpg" width="50px" height="50px" style={{ borderRadius: '50%' }} />
-            <Navbar.Brand as={Link} to="/">Notes Sharing</Navbar.Brand>
-            <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-${expand}`} />
-            <Navbar.Offcanvas
-              id={`offcanvasNavbar-expand-${expand}`}
-              aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
-              placement="start"
-            >
-              <Offcanvas.Header closeButton>
-                <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`}>Notes Sharing</Offcanvas.Title>
-              </Offcanvas.Header>
-              <Offcanvas.Body>
-              <Nav className="mr-3 flex-grow-1 pe-3">
-             <Nav.Link as={Link} to="/home" className="nav-link" onClick={handleClick}>
-                <img src={isHome ? "./image/whitehome.png" : "./image/blackhome.png"} width="50px" height="50px" alt="Home"/>
-            </Nav.Link>
-                  <NavDropdown title={<i className="bi bi-upload bi-4" style={{ fontSize: '40px' }}></i>} 
-                id={`offcanvasNavbarDropdown-expand-${expand}`} noCaret>
-                <NavDropdown.Item as={Link} to="/file" onClick={handleFile}>File</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/image" onClick={handleImage}>Image</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/video" onClick={handleVideo}>Video</NavDropdown.Item>
-              </NavDropdown>
-              <Nav.Link as={Link} to="/notification" className="nav-link" onClick={handleNotification}>  
-              <img src={isNotification ? "./image/whitenotification.png" : "./image/blacknotification.png"} width="50px" height="50px" alt="Notification"/>
-          </Nav.Link>
-             
+      {!loading && (
+        <>
+          {['sm'].map((expand) => (
+            <Navbar key={expand} expand={expand}  className={`bg-body-tertiary mb-3 ${navbarVisible ? 'navbar-visible' : 'navbar-hidden'}`} 
+              fixed="top">
+              <Container fluid>
+                <img src="./image/book.jpg" width="50px" height="50px" style={{ borderRadius: '50%' }} />
+                <Navbar.Brand as={Link} to="/">Notes Sharing</Navbar.Brand>
+                <Nav.Link className="nav-link" onClick={handleSearchToggle}>
+                <FontAwesomeIcon icon={faSearch} style={{marginLeft:"-25px"}} />
+                </Nav.Link>
+                <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-${expand}`} />
+                <Navbar.Offcanvas
+                  id={`offcanvasNavbar-expand-${expand}`}
+                  aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
+                  placement="start"
+                >
+                  <Offcanvas.Header closeButton>
+                    <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`}>Notes Sharing</Offcanvas.Title>
+                  </Offcanvas.Header>
+                  <Offcanvas.Body>
+                    <Nav className="mr-3 flex-grow-1 pe-3">
+                      <Nav.Link as={Link} to="/home" className="nav-link" onClick={() => handleClick('home')}>
+                        <img src={isHomeClicked ? "./image/whitehome.png" : "./image/blackhome.png"} width="50px" height="50px" alt="Home" />
+                      <br/>
+                        {isHomeClicked && <div>Home</div>}
+                      </Nav.Link>
 
-                 {check && <NavDropdown title={<>
-                  <img src={"./image/classnote.png"}width="50px"height="50px" /></>} >
+                      <Nav.Link as={Link} to="/notification" className="nav-link" onClick={() => handleClick('notification')}>
+                        <img src={isNotificationClicked ? "./image/whitenotification.png" : "./image/blacknotification.png"} width="50px" height="50px" alt="Notification" />
+                        {isNotificationClicked && <p>Notification</p>}
+                      </Nav.Link>
 
-                                        {storedata.map((item, index) => (
-                                <NavDropdown.Item key={index} onClick={() => navigateToSubject(item.class_code)}>
-                            {item.subjectname}
+                      <Nav.Link as={Link} to="/book" className="nav-link" onClick={() => handleClick('upload')}>
+                       
+                        <FontAwesomeIcon icon={faBook} style={{ width: "50px", height: "50px", margin: "5px", cursor: "pointer" }} />
+                        {isUploadClicked && <div>Book</div>}
+                      </Nav.Link>
 
-                        </NavDropdown.Item>          ))}
-                                    </NavDropdown>
-                                }
-                                            
-                                          
-                </Nav>
-            <Nav className="justify-content-end">
-  <NavDropdown title={<i className="bi bi-gear bi-2x"style={{ fontSize: '40px' }}></i>} id={`offcanvasNavbarDropdown-expand-${expand}`} align={{ sm: 'end' }} noCaret>
-    <NavDropdown.Item as={Link} to='/profile'>Your Profile</NavDropdown.Item>
-    <NavDropdown.Divider />
-    <NavDropdown.Item as={Link} to="/project">Your Project</NavDropdown.Item>
-    <NavDropdown.Divider />
-    <NavDropdown.Item onClick={handleClass}>Join or Create Class</NavDropdown.Item>
-    <NavDropdown.Divider />
-    <NavDropdown.Item as={Link} to="/results">Results</NavDropdown.Item>
-    <NavDropdown.Divider />
-    <NavDropdown.Item as={Link} to="/Logout" onClick={logoutUser}>Logout</NavDropdown.Item>
-  </NavDropdown>
-</Nav>
-
-
-              </Offcanvas.Body>
-            </Navbar.Offcanvas>
-          </Container>
-        </Navbar>
-      ))}
-      
-      </>
-    }
-     <ChangeableMovement event={selectedEvent} show={show} setShow={setShow} handleEventSelection={handleEventSelection} />
-     
-      <CustomModal show={showclass} onHide={handleClose} />
+                      {check && (
+                        <NavDropdown title={
+                          <img src="./image/classnote.png" width="50px" height="50px" />
+                        }>
+                          {storeData.map((item, index) => (
+                            <NavDropdown.Item key={index} onClick={() => navigateToSubject(item.class_code)}>
+                              {item.subjectname}
+                            </NavDropdown.Item>
+                          ))}
+                        </NavDropdown>
+                      )}
+                    </Nav>
+                 
+                    <Nav className="justify-content-end">
+                      <NavDropdown title={<i className="bi bi-gear bi-2x" style={{ fontSize: '40px' }}></i>} id={`offcanvasNavbarDropdown-expand-${expand}`} align={{ sm: 'end' }} noCaret>
+                        <NavDropdown.Item as={Link} to='/profile'>Your Profile</NavDropdown.Item>
+                        <NavDropdown.Divider />
+                        <NavDropdown.Item onClick={handleClass}>Join or Create Class</NavDropdown.Item>
+                        <NavDropdown.Divider />
+                        <NavDropdown.Item as={Link} to="/Logout" onClick={logoutUser}>Logout</NavDropdown.Item>
+                      </NavDropdown>
+                    </Nav>
+                  </Offcanvas.Body>
+                </Navbar.Offcanvas>
+              </Container>
+            </Navbar>
+          ))}
+        </>
+      )}
+       {/* Add SearchBox Component */}
+       {searchVisible && (
+        <SearchBox
+        searchTerm={searchTerm}
+        handleSearchChange={handleSearchChange}
+        searchResults={searchResults}
+        handleSearchClose={handleSearchClose}
+        />
+      )}
+      <ChangeableMovement event={selectedEvent} show={show} setShow={setShow} handleEventSelection={handleEventSelection} />
+      <CustomModal show={showClass} onHide={handleClose} />
     </>
   );
 }

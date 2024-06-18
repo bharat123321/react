@@ -6,7 +6,10 @@ import LoadingBar from 'react-top-loading-bar';
 import Carousel from 'react-bootstrap/Carousel';
 import { BiDotsVertical } from 'react-icons/bi';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGlobeAmericas } from '@fortawesome/free-solid-svg-icons';
+import Dropdown from 'react-bootstrap/Dropdown';
+import { Link } from 'react-router-dom';
 const SelectedNotes = (props) => {
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
@@ -43,37 +46,7 @@ const SelectedNotes = (props) => {
             });
     }
 
-    const formatTime = (timestamp) => {
-        const now = new Date(); // Current time
-        const uploadTime = new Date(timestamp); // Time of the image upload
-
-        // Calculate the time difference in milliseconds
-        const difference = now.getTime() - uploadTime.getTime();
-
-        // Convert milliseconds to seconds
-        const differenceInSeconds = Math.floor(difference / 1000);
-
-        // Define the time units and their respective thresholds
-        const timeUnits = [
-            { unit: 'year', threshold: 31536000 },
-            { unit: 'week', threshold: 604800 },
-            { unit: 'day', threshold: 86400 },
-            { unit: 'hour', threshold: 3600 },
-            { unit: 'minute', threshold: 60 },
-            { unit: 'second', threshold: 1 }
-        ];
-
-        // Iterate through time units to find the appropriate unit to display
-        for (const unit of timeUnits) {
-            if (differenceInSeconds >= unit.threshold) {
-                const value = Math.floor(differenceInSeconds / unit.threshold);
-                return `${value} ${unit.unit}${value !== 1 ? 's' : ''} ago`;
-            }
-        }
-
-        // If the time difference is less than 1 second
-        return `just now`;
-    };
+    
 
     const handleDropDown = (index) => {
         const updatedDropdowns = [...openDropdowns];
@@ -95,25 +68,27 @@ const SelectedNotes = (props) => {
                             <Card key={item.id} style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
                                 <div>
                                     <Card.Header style={{ display: 'flex', alignItems: 'center' }}>
-                                        <Card.Img
-                                            variant="bottom"
-                                            src={"http://127.0.0.1:8000/avatar/" + item.avatar}
-                                            style={{ width: "5%", borderRadius: "5%", marginLeft: "0px", marginTop: "-10px", display: "block" }}
-                                        />
-                                        <div>
-                                            <h4 style={{ paddingLeft: "10px", marginBottom: "0" }}>
-                                                {item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.lastname.charAt(0).toUpperCase() + item.lastname.slice(1)}
-                                            </h4>
-                                            <h6 style={{position:"absolute",right:"0px"}}>{item.subjectname}</h6> 
-                                            <h6 style={{ paddingLeft: "10px", marginTop: "0px" }}> {formatTime(item.created_at)}</h6>
-                                        </div>
-                                        <div className="HiddenIcon">
-                                            <BiDotsVertical onClick={() => handleDropDown(index)} className="dropbtn" />
-                                            <div id={`myDropdown-${index}`} style={{ display: openDropdowns[index] ? 'block' : 'none' }} className="dropdown-content">
-                                                <a href="#">Download</a>
-                                                <a href="#">Preview</a>
-                                            </div>
-                                        </div>
+                                       
+                                         <Card.Img
+                                    variant="bottom"
+                                    src={"http://127.0.0.1:8000/avatar/" + item.avatar}
+                                    style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
+                                />
+                                <div>
+                                    <h4 style={{ margin: 0 }}>{item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.lastname}</h4>
+                                    <h6 style={{ fontSize: "12px", color: "#888" }}><FontAwesomeIcon icon={faGlobeAmericas} /> {item.formatted_date}</h6>
+                                </div>
+                                        <div className="HiddenIcon" style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                                    <Dropdown>
+                                    <Dropdown.Toggle variant="link" bsPrefix="p-2">
+                                        <BiDotsVertical />
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu>
+                                        <Dropdown.Item as={Link} to={`/convertimgtopdf/${item.id}`}>Preview</Dropdown.Item>
+                                        <Dropdown.Item >Download</Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            </div>
                                     </Card.Header>
                                     <Card.Body>
                                         {item.image && (
@@ -129,9 +104,11 @@ const SelectedNotes = (props) => {
                                                 ))}
                                             </Carousel>
                                         )}
-                                        {item.file && (
-                                            <h1>hello</h1>
-                                        )}
+                                         {item.file && (
+                                <>
+                                    <object data={`http://127.0.0.1:8000/images/${item.file}`} type="application/pdf" width="100%" height="100%"></object>
+                                </>
+                            )}
                                     </Card.Body>
                                 </div>
                             </Card>
