@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import Userdetail from '../profile/Userdetail';
 import Notes from '../profile/Notes';
+import MyFile from '../profile/MyFile';
 import Dropdown from 'react-bootstrap/Dropdown';
 import AuthUser from '../component/AuthUser';
 import LoadingBar from 'react-top-loading-bar';
@@ -57,7 +58,7 @@ function Userprofile() {
         <>
             <LoadingBar color="#f11946" progress={progress} onLoaderFinished={() => setProgress(0)} />
             <hr />
-            <Navbar bg="white" data-bs-theme="dark">
+            <Navbar bg="white" data-bs-theme="dark" style={{marginTop:"120px"}}>
                 <Container>
                     <Nav className="me-auto">
                         <Dropdown className="mr-3">
@@ -77,7 +78,13 @@ function Userprofile() {
                         <button
                             onClick={() => handleButtonClick('Notes')}
                             className={`btn btn-outline-dark ${activeButton === 'Notes' ? 'active' : ''}`}>
-                            Your Notes
+                            Created Notes
+                        </button>
+                        <button
+                            onClick={() => handleButtonClick('myfile')}
+                            className={`btn btn-outline-dark ${activeButton === 'myfile' ? 'active' : ''}`}
+                        >
+                            My File
                         </button>
                         <div className="mx-2"></div>
                         <button
@@ -100,6 +107,7 @@ function Userprofile() {
             </div>
             {activeButton === 'userDetail' && <Userdetail />}
             {activeButton === 'Notes' && <Notes />}
+            {activeButton==='myfile'&&<MyFile/>}
         </>
     );
 }

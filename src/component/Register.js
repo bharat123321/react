@@ -20,15 +20,41 @@ function Register() {
     const submitForm = (event) => {
         event.preventDefault();
         setLoading(true);
-        
+
+        // Validate firstname and lastname
+        const errors = {};
+        const startsWithNumber = /^[0-9]/;
+
+        if (startsWithNumber.test(firstname)) {
+            errors.firstname = "Firstname invalid.";
+        }
+        if (startsWithNumber.test(lastname)) {
+            errors.lastname = "Lastname invalid.";
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setInputErrorList(errors);
+            setLoading(false);
+            return;
+        }
+
         axios.post('http://127.0.0.1:8000/api/register', data)
             .then(res => {
                 setProgress(70); // Intermediate progress
                 alert(res.data.message);
+                // Reset form fields
+                setFName("");
+                setLName("");
+                setPassword("");
+                setEmail("");
+                setGender("");
+                setAddress("");
+                setCountry("");
+                setInputErrorList({}); // Clear input errors
                 setLoading(false);
                 setProgress(100); // Complete loading progress
             })
-            .catch(function (error) {
+            .catch(error => {
                 setLoading(false);
                 setProgress(100); 
                 if (error.response) {
@@ -36,12 +62,12 @@ function Register() {
                         setInputErrorList(error.response.data.errors);
                     }
                     if (error.response.status === 500) {
-                        alert("500");
-                        console.log(error.response.data.message);
+                        alert("An error occurred on the server. Please try again later.");
+                        console.error(error.response.data.message);
                     }
                 }
             });
-    }
+    };
 
     return (
         <>
@@ -61,24 +87,50 @@ function Register() {
                                         <div className="form-row">
                                             <div className="form-group">
                                                 <label htmlFor="f_name">First Name</label>
-                                                <input type="text" className="form-control" value={firstname} onChange={(e) => setFName(e.target.value)} placeholder="First name" />
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    value={firstname} 
+                                                    onChange={(e) => setFName(e.target.value)} 
+                                                    placeholder="First name" 
+                                                />
                                                 <span className="text-danger">{inputErrorList.firstname}</span>
                                             </div>
                                             <div className="form-group">
-                                                <label htmlFor="l_name">Lastname</label>
-                                                <input type="text" className="form-control" value={lastname} onChange={(e) => setLName(e.target.value)} placeholder="Last name" />
+                                                <label htmlFor="l_name">Last Name</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control" 
+                                                    value={lastname} 
+                                                    onChange={(e) => setLName(e.target.value)} 
+                                                    placeholder="Last name" 
+                                                />
                                                 <span className="text-danger">{inputErrorList.lastname}</span>
                                             </div>
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group ">
                                                 <label htmlFor="inputEmail4">Email</label>
-                                                <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} id="inputEmail4" placeholder="Email" />
+                                                <input 
+                                                    type="email" 
+                                                    className="form-control" 
+                                                    value={email} 
+                                                    onChange={(e) => setEmail(e.target.value)} 
+                                                    id="inputEmail4" 
+                                                    placeholder="Email" 
+                                                />
                                                 <span className="text-danger">{inputErrorList.email}</span>
                                             </div>
                                             <div className="form-group  ">
                                                 <label htmlFor="inputPassword4">Password</label>
-                                                <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} id="inputPassword4" placeholder="Password" />
+                                                <input 
+                                                    type="password" 
+                                                    className="form-control" 
+                                                    value={password} 
+                                                    onChange={(e) => setPassword(e.target.value)} 
+                                                    id="inputPassword4" 
+                                                    placeholder="Password" 
+                                                />
                                                 <span className="text-danger">{inputErrorList.password}</span>
                                             </div>
                                         </div>
@@ -110,12 +162,26 @@ function Register() {
                                         </div>
                                         <div className="form-group">
                                             <label htmlFor="inputAddress">Address</label>
-                                            <input type="text" className="form-control" value={address} onChange={(e) => setAddress(e.target.value)} id="inputAddress" placeholder="1234 Main St" />
+                                            <input 
+                                                type="text" 
+                                                className="form-control" 
+                                                value={address} 
+                                                onChange={(e) => setAddress(e.target.value)} 
+                                                id="inputAddress" 
+                                                placeholder="1234 Main St" 
+                                            />
                                             <span className="text-danger">{inputErrorList.address}</span>
                                         </div>
                                         <div className="form-group ">
                                             <label htmlFor="country">Country</label>
-                                            <input type="text" className="form-control" value={country} onChange={(e) => setCountry(e.target.value)} id="country" placeholder="Country" />
+                                            <input 
+                                                type="text" 
+                                                className="form-control" 
+                                                value={country} 
+                                                onChange={(e) => setCountry(e.target.value)} 
+                                                id="country" 
+                                                placeholder="Country" 
+                                            />
                                             <span className="text-danger">{inputErrorList.country}</span>
                                         </div>
                                         <button className="btn btn-primary" disabled={loading}>Register</button>

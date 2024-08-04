@@ -1,0 +1,22 @@
+.pdf-container {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    overflow: hidden;
+    text-align: center;
+    padding: 10px;
+}
+
+.pdf-container .navigation {
+    margin-bottom: 10px;
+}
+
+.pdf-container canvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+.blurred {
+    filter: blur(5px);
+    pointer-events: none;
+}

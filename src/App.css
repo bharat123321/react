@@ -134,7 +134,7 @@
   margin-top: -10px; /* Adjust this value based on your navbar height */
 }
 .postdesign{
-  margin-top:100px;
+  margin-top:120px;
 }
 /* SearchBox.css */
 .search-overlay {
@@ -162,18 +162,73 @@
 .search-results {
   position: absolute;
   top: 100%;
-  width: 100%;
+  left:50px;
+  width: 50%;
   background: white;
   z-index: 1000;
   cursor:pointer;
   border: 1px solid #ddd;
-  max-height: 200px; /* Limit height */
+  max-height: 300px; /* Limit height */
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: hidden; /* Hide horizontal scrollbar */
 }
 .search-results:hover{
   background-color:gray;
 }
+/* Hover effect for navigation links */
+/* Hover effect for navigation links */
+.offcanvas-body .nav-link:hover {
+  background-color: lightgray;
+}
+
+/* Positioning for the search wrapper and icon */
+.search-wrapper {
+  position: relative;
+  }
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: gray;
+  z-index: 1;
+}
+
+.search-input {
+  padding-left: 30px; /* Adjust padding to fit the icon */
+  width: 200px; /* Default width for the input */
+  transition: width 0.3s ease; /* Smooth transition for width change */
+}
+    
+
+
+@media (max-width: 500px) and (max-height: 654px) {
+  .search-input {
+  padding-left: 30px; /* Adjust padding to fit the icon */
+  width: 100px; /* Default width for the input */
+  transition: width 0.3s ease; /* Smooth transition for width change */
+}
+    
+  .search-input:focus {
+    width: 200px; /* Expanded width when focused */
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    border-color: #007bff;
+  }
+ }
+ .card-spacing{
+  margin: 1px;
+  cursor:pointer;
+  text-decoration: none;
+ }
+ .card-spacing:hover{
+  background-color:gray;
+  color:white;
+ }
+ 
+
+
 
 
  

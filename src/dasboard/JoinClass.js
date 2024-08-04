@@ -46,7 +46,7 @@ function JoinClass() {
 
     return (
         <>
-            <Card style={{ margin: '0px 10% 0px' }}>
+            <Card style={{ margin: '130px 10% 0px' }}>
                 <Card.Header>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Link to="/join" className="btn btn-outline-white mr-3" style={{ cursor: 'pointer' }}><h3>Join Class</h3></Link>

@@ -114,7 +114,7 @@ function CreateClass() {
 
     return (
         <>
-            <Card style={{ margin: '0px 10% 0px' }}>
+            <Card style={{ margin: '130px 10% 0px' }}>
                 <Card.Header>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Link as={Link} className="btn btn-outline-white mr-3" to="/create" style={{ cursor: 'pointer' }}><h3>Create Class</h3></Link>

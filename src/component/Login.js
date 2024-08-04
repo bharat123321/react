@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import AuthUser from './AuthUser';
 import axios from 'axios';
-import Loading from './Loading.js';
-import Nav_bar from '../navbar_design/Nav_bar';
-import Register from '../component/Register';
-import JoinClass from '../dasboard/JoinClass';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { Button, Col, Container, Modal, Row, Spinner, Alert } from "react-bootstrap";
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { Button, Modal, Spinner, Alert } from "react-bootstrap";
 import LoadingBar from 'react-top-loading-bar';
 
 function CustomModal({ show, onHide }) {
@@ -49,28 +45,26 @@ function Login() {
     const submitForm = (event) => {
         event.preventDefault();
         setLoading(true);
-      
-
-        const data = { email: email, password: password };
+    
+        const data = { email, password };
         http.post('/login', data).then((res) => {
             setProgress(50);
-            console.log(res.data);
+            console.log('Login successful:', res.data);
             setToken(res.data.user, res.data.access_token);
-
+    
             setLoading(false);
-
+    
             if (res.data.first_time_login === 1) {
                 setShow(true);
             } else {
                 window.location.href = '/home';
             }
             setProgress(100);
-
-        }).catch(function (error) {
+        }).catch((error) => {
             setLoading(false);
-            setProgress(0); // Reset progress to 0 immediately on error
+            setProgress(0);
+            console.error('Login error:', error.response ? error.response.data : error);
             if (error.response) {
-                console.log(error.response.data.error);
                 if (error.response.status === 401) {
                     setInputErrorList(error.response.data.error);
                 }
@@ -80,6 +74,20 @@ function Login() {
             }
         });
     }
+    
+    const responseGoogle = (response) => {
+        console.log('Google OAuth response:', response);
+        http.post('http://localhost:8000/api/auth/google/callback', {
+            token: response.credential
+        }).then((res) => {
+            console.log('Google login successful:', res.data);
+            setToken(res.data.user, res.data.access_token);
+            window.location.href = '/home';
+        }).catch((error) => {
+            console.error('Google login error:', error);
+        });
+    };
+    
 
     return (
         <>
@@ -109,15 +117,22 @@ function Login() {
                                     {inputErrorList && <Alert variant="danger">{inputErrorList}</Alert>}
                                     <button className="btn btn-success" disabled={loading}>Submit</button>
                                     {loading && <Spinner animation="border" role="status" className="ml-2"><span className="sr-only"></span></Spinner>}
-                                </form>
-                            </div>
+                                </form>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                
+                            </div>  
                         </div>
+                        <GoogleOAuthProvider clientId="1079841177125-ktlvgmunagi4du6sd0alcn6to9ouf877.apps.googleusercontent.com">
+                            <GoogleLogin
+                                onSuccess={responseGoogle}
+                                onFailure={responseGoogle}
+                            />
+                        </GoogleOAuthProvider>
                     </div>
                 </div>
             </div>
             <CustomModal show={show} onHide={handleClose} />
         </>
-    )
+    );
 }
 
 export default Login;

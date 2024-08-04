@@ -3,7 +3,7 @@ import AuthUser from '../component/AuthUser';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import LoadingBar from 'react-top-loading-bar';
-import Carousel from 'react-bootstrap/Carousel';
+import Carousel from 'react-bootstrap/Carousel';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 import Dropdown from 'react-bootstrap/Dropdown';
 import { Modal,Spinner} from "react-bootstrap";
 import Form from 'react-bootstrap/Form';
@@ -156,6 +156,7 @@ const handleImageChange = (e,fileType) => {
                             <span className="ml-1">Private</span>
                         </Form.Group>
                     </div>
+                    <input type="text" className="form-control"onChange={(e)=>setTopic(e.target.value)}placeholder='Topic'/>
                     <input
                         type="text"
                         className="form-control"
@@ -163,7 +164,7 @@ const handleImageChange = (e,fileType) => {
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder={`Write Something about ${event}`}
                     />
-                    <input type="text" className="form-control"onChange={(e)=>setTopic(e.target.value)}placeholder='Topic'/>                    <span className="text-danger">{InputErrorList.description}</span>
+                    <span className="text-danger">{InputErrorList.description}</span>
                     <label htmlFor="fileInput" className="custom-file-label">
                         {event === 'File' ? (
                             selectedFile
@@ -360,7 +361,7 @@ function Home() {
             <div className="postdesign" >
                 {!loading ? userData.map((item, index) => (
                     <>
-                    <Card key={index} style={{ margin: "auto" }} className=" col-md-8 col-md-offset-1">
+                    <Card key={index} style={{ margin: "auto" }} className=" col-md-6 col-md-offset-1">
                         <Card.Header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                 <Card.Img
@@ -387,6 +388,7 @@ function Home() {
                                 </Dropdown>
                             </div>
                         </Card.Header>
+                        <h5>{item.topic.charAt(0).toUpperCase()+item.topic.slice(1)}</h5>
                         <hr />
                         <Card.Body>
                             {item.image && (
@@ -460,8 +462,8 @@ function Home() {
                 }}>
                     <ul style={{ listStyleType: 'none', margin: 0, padding: '10px' }}>
                         <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleFile}>Upload File</li>
-                        <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleImage}>Upload Image</li>
-                        <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleVideo}>Upload Video</li>
+                        {/* <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleImage}>Upload Image</li>
+                        <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleVideo}>Upload Video</li> */}
                     </ul>
                 </div>
             )}

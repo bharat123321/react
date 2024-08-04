@@ -14,6 +14,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 import RenderPdf from './RenderPdf';
 import Fetchpdf from './Fetchpdf';
+
 const TemplateCard = () => (
     <Card style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
         <Card.Header style={{ display: 'flex', alignItems: 'center' }}>
@@ -43,16 +44,18 @@ function Design_login() {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const [showFull, setShowFull] = useState(false);
+
+    const toggleShowFull = () => setShowFull(!showFull);
+
     useEffect(() => {
         fetchData();
     }, []);
 
     const fetchData = () => {
-        axios.get('http://127.0.0.1:8000/api/fetchpublicdata',{
-            headers: {
-    'Content-Type': 'application/json',
-  },
-   withCredentials: true, 
+        axios.get('http://127.0.0.1:8000/api/fetchpublicdata', {
+            headers: { 'Content-Type': 'application/json' },
+            withCredentials: true,
         })
             .then((res) => {
                 const data = res.data.data;
@@ -84,23 +87,6 @@ function Design_login() {
         setIsLoading(false);
     };
 
-    const handleDownload = async (id) => {
-        try {
-            const response = await axios.get(`http://localhost:8000/api/downloadpdf/${id}`, {
-                responseType: 'blob',
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'document.pdf');
-            document.body.appendChild(link);
-            link.click();
-        } catch (error) {
-            console.error('Error downloading the file', error);
-            alert('Error downloading the file. Please try again.');
-        }
-    };
-
     const handleUploadClick = () => setShowUploadOptions(!showUploadOptions);
 
     const handleEventSelection = (event) => {
@@ -109,81 +95,90 @@ function Design_login() {
     };
 
     const handleFile = () => handleEventSelection('File');
-
     const handleImage = () => handleEventSelection('Image');
-
     const handleVideo = () => handleEventSelection('Video');
 
     const handleClose = () => setShow(false);
-
     const handleModalOpen = () => setShowModal(true);
     const handleModalClose = () => setShowModal(false);
 
     return (
         <>
-            <LoadingBar
-                color='#f11946'
-                progress={progress}
-                onLoaderFinished={() => setProgress(0)}
-            />
+            <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
 
             <div style={{ margin: '0px 10%' }}>
-                {!loading ? userData.map((item, index) => (
-                    <React.Fragment key={index}>
-                        <Card style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
-                            <Card.Header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Card.Img
-                                        variant="bottom"
-                                        src={`http://localhost:8000/avatar/${item.avatar}`}
-                                        style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
-                                    />
-                                    <div>
-                                        <h4 style={{ margin: 0 }}>{item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.lastname}</h4>
-                                        <h6 style={{ fontSize: "12px", color: "#888" }}><FontAwesomeIcon icon={faGlobeAmericas} /> {item.formatted_date}</h6>
-                                    </div>
-                                </div>
-                                <div className="HiddenIcon" style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
-                                    <Dropdown>
-                                        <Dropdown.Toggle variant="link" bsPrefix="p-2">
-                                            <BiDotsVertical />
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item as={Link} to={`/convertimgtopdf/${item.id}`}>Preview</Dropdown.Item>
-                                            <Dropdown.Item onClick={() => handleDownload(item.id)}>Download</Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                </div>
-                            </Card.Header>
-                            <hr />
-                            <Card.Body>
-                                {item.image && (
-                                    <>
-                                        <Carousel>
-                                            {item.image.split(',').map((imageName, imageIndex) => (
-                                                <Carousel.Item key={imageIndex}>
-                                                    <img
-                                                        className="d-block w-100"
-                                                        src={`http://localhost:8000/images/${imageName.trim()}`}
-                                                        alt={`Image ${imageIndex}`}
-                                                    />
-                                                </Carousel.Item>
-                                            ))}
-                                        </Carousel>
-                                        <br />
-                                        <h6>Viewed: 1223</h6>
-                                        <h6 style={{ position: "absolute", right: "0px", bottom: "17px" }}>Downloaded: 1223</h6>
-                                    </>
-                                )}
+                {!loading ? userData.map((item, index) => {
+                    const topic = item?.topic || '';
+                    const truncatedText = topic.split(' ').slice(0, 3).join(' ');
+                    const isLongDescription = topic.split(' ').length > 3;
 
-                                {item.file && (
-                                    <Fetchpdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
-                                )}
-                            </Card.Body>
-                        </Card>
-                        <br />
-                    </React.Fragment>
-                )) : (
+                    return (
+                        <React.Fragment key={index}>
+                            <Card style={{ margin: "auto" }} className="col-md-8 col-md-offset-1">
+                                <Card.Header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <Card.Img
+                                            variant="bottom"
+                                            src={`http://localhost:8000/avatar/${item.avatar}`}
+                                            style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
+                                        />
+                                        <div>
+                                            <h4 style={{ margin: 0 }}>{item.firstname.charAt(0).toUpperCase() + item.firstname.slice(1)} {item.lastname}</h4>
+                                            <h6 style={{ fontSize: "12px", color: "#888" }}><FontAwesomeIcon icon={faGlobeAmericas} /> {item.formatted_date}</h6>
+                                        </div>
+                                    </div>
+                                    <div className="HiddenIcon" style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                                        <Dropdown>
+                                            <Dropdown.Toggle variant="link" bsPrefix="p-2">
+                                                <BiDotsVertical />
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu>
+                                                <Dropdown.Item as={Link} to="/Login">Download</Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    </div>
+                                </Card.Header>
+                                
+                                <Card.Body>
+                                    <h4>
+                                        {showFull ? topic : `${truncatedText}${isLongDescription ? '...' : ''}`}
+                                    </h4>
+                                    {isLongDescription && (
+                                        <a onClick={toggleShowFull} style={{ cursor: 'pointer', color: 'blue' }}>
+                                            {showFull ? 'Show less' : 'Show more'}
+                                        </a>
+                                    )}
+
+                                    <hr />
+                                    
+                                    {item.image && (
+                                        <>
+                                            <Carousel>
+                                                {item.image.split(',').map((imageName, imageIndex) => (
+                                                    <Carousel.Item key={imageIndex}>
+                                                        <img
+                                                            className="d-block w-100"
+                                                            src={`http://localhost:8000/images/${imageName.trim()}`}
+                                                            alt={`Image ${imageIndex}`}
+                                                        />
+                                                    </Carousel.Item>
+                                                ))}
+                                            </Carousel>
+                                            <br />
+                                            <h6>Viewed: 1223</h6>
+                                            <h6 style={{ position: "absolute", right: "0px", bottom: "17px" }}>Downloaded: 1223</h6>
+                                        </>
+                                    )}
+
+                                    {item.file && (
+                                        <Fetchpdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
+                                    )}
+                                </Card.Body>
+                            </Card>
+                            <br />
+                        </React.Fragment>
+                    );
+                }) : (
                     Array.from({ length: 3 }).map((_, index) => (
                         <TemplateCard key={index} />
                     ))

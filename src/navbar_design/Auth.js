@@ -328,7 +328,7 @@ function Auth() {
     console.log(term);
    if (term) {
       try {
-        const response = http.get(`/search`, {
+        const response = http.get(`/search?q=${term}`, {
           params: { term }
         }).then((res)=>{
           setSearchResults(res.data.resultdata);
@@ -406,24 +406,26 @@ function Auth() {
     })
   }
 
-  // State for navbar visibility
-  const [navbarVisible, setNavbarVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(window.scrollY);
+ const [navbarVisible, setNavbarVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
 
-  useEffect(() => {
-   
-    const handleScroll = () => {
-      if (window.scrollY > lastScrollY) {
-        setNavbarVisible(false);
-      } else {
-        setNavbarVisible(true);
-      }
-      setLastScrollY(window.scrollY);
-    };
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 200) {
+                if (window.scrollY > lastScrollY) {
+                    setNavbarVisible(false);
+                } else {
+                    setNavbarVisible(true);
+                }
+            } else {
+                setNavbarVisible(true);
+            }
+            setLastScrollY(window.scrollY);
+        };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
 
     useEffect(()=>{
       fetchUserData();
@@ -431,18 +433,26 @@ function Auth() {
   
     },[]);
 
-  const fetchUserData = () => {
-    http.get("/fetchUser").then((res) => {
-      if (res.data.check === '') {
-        setCheck(false);
-      } else {
-        setStoreData(res.data.check);
-        setCheck(true);
-      }
-    }).catch((event) => {
-      // Handle error
-    })
+    const fetchUserData = () => {
+      console.log('Fetching user data...');
+      http.get("/fetchUser")
+          .then((res) => {
+              console.log('User data response:', res.data);
+              if (res.data.check === '') {
+                  setCheck(false);
+              } else {
+                  setStoreData(res.data.check);
+                  setCheck(true);
+              }
+          })
+          .catch((error) => {
+              console.error('Error fetching user data:', error);
+              if (error.response && error.response.status === 401) {
+                  window.location.href = '/login';
+              }
+          });
   }
+  
 
   const navigateToSubject = (subjectName) => {
     navigate(`/${subjectName}`);
@@ -458,7 +468,7 @@ function Auth() {
       {!loading && (
         <>
           {['sm'].map((expand) => (
-            <Navbar key={expand} expand={expand}  className={`bg-body-tertiary mb-3 ${navbarVisible ? 'navbar-visible' : 'navbar-hidden'}`} 
+            <Navbar key={expand} expand={expand} style={{ display: navbarVisible ? 'block' : 'none' }}  className={`bg-body-tertiary mb-3 ${navbarVisible ? 'navbar-visible' : 'navbar-hidden'}`} 
               fixed="top">
               <Container fluid>
                 <img src="./image/book.jpg" width="50px" height="50px" style={{ borderRadius: '50%' }} />
@@ -478,15 +488,15 @@ function Auth() {
                   <Offcanvas.Body>
                     <Nav className="mr-3 flex-grow-1 pe-3">
                       <Nav.Link as={Link} to="/home" className="nav-link" onClick={() => handleClick('home')}>
-                        <img src={isHomeClicked ? "./image/whitehome.png" : "./image/blackhome.png"} width="50px" height="50px" alt="Home" />
+                        <img src={isHomeClicked ? "./image/whitehome.png" : "./homelogo.png"} width="50px" height="50px" alt="Home" />
                       <br/>
                         {isHomeClicked && <div>Home</div>}
                       </Nav.Link>
 
-                      <Nav.Link as={Link} to="/notification" className="nav-link" onClick={() => handleClick('notification')}>
+                      {/* <Nav.Link as={Link} to="/notification" className="nav-link" onClick={() => handleClick('notification')}>
                         <img src={isNotificationClicked ? "./image/whitenotification.png" : "./image/blacknotification.png"} width="50px" height="50px" alt="Notification" />
                         {isNotificationClicked && <p>Notification</p>}
-                      </Nav.Link>
+                      </Nav.Link> */}
 
                       <Nav.Link as={Link} to="/book" className="nav-link" onClick={() => handleClick('upload')}>
                        
