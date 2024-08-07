@@ -30,6 +30,7 @@ import Imgtotext from './convertion/Imgtotext';
 import Imgtoword from './convertion/Imgtoword';
 import Searchenter from './before/Searchenter';
 import Downloadbook from './dasboard/Downloadbook';
+import BookMark from './profile/BookMark';
 function App() {
     const { getToken } = AuthUser();
     const [loggedIn, setLoggedIn] = useState(!!getToken());
@@ -75,6 +76,7 @@ function App() {
                        <Route path="/searchdetail/:id" element={<SearchDetail />} />
                       <Route path="/todownloadbook/:id" element={<Downloadbook/>} />
                          <Route path="/:subjectname" element={<SubjectComponent />} exact/>
+                         <Route path="/bookmark" element={<BookMark/>}exact/>
                     </>
                 )}
                 {/* Protected routes */}

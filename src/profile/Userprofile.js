@@ -1,25 +1,24 @@
-import { Navbar, Container, Nav } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
+import { Navbar, Container, Nav } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import Userdetail from '../profile/Userdetail';
-import Notes from '../profile/Notes';
-import MyFile from '../profile/MyFile';
-import Dropdown from 'react-bootstrap/Dropdown';
 import AuthUser from '../component/AuthUser';
 import LoadingBar from 'react-top-loading-bar';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useNavigate } from 'react-router-dom';
-import NavDropdown from 'react-bootstrap/NavDropdown';
-import SelectedNotes from '../profile/SelectedNotes'; 
+import BookMark from '../profile/BookMark';
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
+import Pagepdf from '../dasboard/Pagepdf';
+
 function Userprofile() {
     const [closeprofile, setCloseprofile] = useState(true);
     const [show, setShow] = useState(false);
     const [activeButton, setActiveButton] = useState(''); // State to track active button
     const { http } = AuthUser();
-    const [userData, setUserData] = useState([]);
+    const [userData, setUserData] = useState([]); // Initialize as an empty array
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
-       const [selectedSubject, setSelectedSubject] = useState(null);
+    const [selectedSubject, setSelectedSubject] = useState(null);
     const navigate = useNavigate();
 
     const handleButtonClick = (buttonName) => {
@@ -31,60 +30,65 @@ function Userprofile() {
 
     useEffect(() => {
         fetchData();
+        fetchUserFile();
     }, []);
 
     const fetchData = () => {
         setProgress(30);
-        http.get('/fetchcreateddata')
+        // http.get('/fetchcreateddata')
+        //     .then((res) => {
+        //         const data = res.data.fetchdata || []; // Default to an empty array if undefined
+        //         console.log('Fetched data:', data);
+        //         setUserData(data);
+        //         setLoading(false);
+        //         setProgress(100);
+        //     })
+        //     .catch((error) => {
+        //         console.error("Error fetching data:", error);
+        //         setLoading(false);
+        //         setProgress(100);
+        //     });
+    };
+
+    const fetchUserFile = () => {
+        setProgress(30);
+        http.get('/fetchuserfile')
             .then((res) => {
-                const data = res.data.fetchdata;
-                console.log(res.data);
-                setUserData(data);
+                const files = res.data.data || []; // Default to an empty array if undefined
+                console.log('Fetched user files:', files);
+                setUserData(files);
                 setLoading(false);
                 setProgress(100);
             })
-            .catch(error => {
-                console.error("Error fetching data:", error);
+            .catch((error) => {
+                console.error("Error fetching user files:", error);
                 setLoading(false);
                 setProgress(100);
             });
     };
-      const handleSubjectSelect = (subjectName) => {
+
+    const handleSubjectSelect = (subjectName) => {
         setSelectedSubject(subjectName);
         setActiveButton(null);
+    };
+
+    const handleDownload = (id) => {
+        // Implement download functionality here
+        console.log('Download file with id:', id);
     };
 
     return (
         <>
             <LoadingBar color="#f11946" progress={progress} onLoaderFinished={() => setProgress(0)} />
             <hr />
-            <Navbar bg="white" data-bs-theme="dark" style={{marginTop:"120px"}}>
+            <Navbar bg="white" data-bs-theme="dark" style={{ marginTop: "120px" }}>
                 <Container>
                     <Nav className="me-auto">
-                        <Dropdown className="mr-3">
-                            <Dropdown.Toggle variant="outline-dark">
-                                List
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                {userData.map((item, index) => (
-                                    <NavDropdown.Item key={index} 
-                                     className={`btn btn-outline-dark ${activeButton === 'Notes' ? 'active' : ''}`}
-                                    onClick={() => handleSubjectSelect(item.class_code)}>
-                                    {item.subjectname}
-                                </NavDropdown.Item>
-                                ))}
-                            </Dropdown.Menu>
-                        </Dropdown>
                         <button
-                            onClick={() => handleButtonClick('Notes')}
-                            className={`btn btn-outline-dark ${activeButton === 'Notes' ? 'active' : ''}`}>
-                            Created Notes
-                        </button>
-                        <button
-                            onClick={() => handleButtonClick('myfile')}
-                            className={`btn btn-outline-dark ${activeButton === 'myfile' ? 'active' : ''}`}
+                            onClick={() => handleButtonClick('bookmark')}
+                            className={`btn btn-outline-dark ${activeButton === 'bookmark' ? 'active' : ''}`}
                         >
-                            My File
+                            BookMark
                         </button>
                         <div className="mx-2"></div>
                         <button
@@ -98,16 +102,38 @@ function Userprofile() {
             </Navbar>
             <hr />
 
-                                <div>
-                {selectedSubject && (
-                    <div>
-                        {<SelectedNotes data={selectedSubject} />}
-                    </div>
+            <Card className="col-md-12">
+                <Card.Header>Your File</Card.Header>
+                {Array.isArray(userData) && userData.length > 0 ? (
+                    userData.map((item, index) => {
+                        const fileUrl = `http://127.0.0.1:8000/api/files/${item.file}`;
+                        console.log('Constructed file URL:', fileUrl);
+                        return (
+                            <Card border="dark" key={index} className="col-md-4">
+                                <div className="pdf-preview">
+                                    <Pagepdf url={fileUrl} />
+                                    <p className="designPdf">PDF</p>
+                                </div>
+                                <Card.Body>
+                                    <div>
+                                        <Card.Title>{item.category}</Card.Title>
+                                        <Card.Title>{item.file}</Card.Title>
+                                        <Card.Text className="nav-link text-left" as={Link} to={`/viewdetail/${item.id}`}>
+                                            <b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b>
+                                        </Card.Text>
+                                    </div>
+                                    <Button variant="primary" onClick={() => handleDownload(item.id)}>Download</Button>
+                                </Card.Body>
+                            </Card>
+                        );
+                    })
+                ) : (
+                    <p>No data available</p>
                 )}
-            </div>
+            </Card>
+
             {activeButton === 'userDetail' && <Userdetail />}
-            {activeButton === 'Notes' && <Notes />}
-            {activeButton==='myfile'&&<MyFile/>}
+            {activeButton === 'bookmark' && <BookMark />}
         </>
     );
 }
