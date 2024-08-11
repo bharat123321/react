@@ -140,10 +140,6 @@ const handleImageChange = (e,fileType) => {
   }
 };
 
-
-
-   
-
   const handleFileChange = (event, fileType) => {
     const files = event.target.files;
 
@@ -230,64 +226,7 @@ const handleImageChange = (e,fileType) => {
     </Modal>
   );
 }
-// SearchBox component
-function SearchBox({ searchTerm, handleSearchChange, searchResults, handleSearchClose }) {
-  const searchBoxRef = useRef(null);
-
-  // Close search box when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target)) {
-        handleSearchClose();
-      }
-    };
-
-    if (searchBoxRef.current) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [searchBoxRef, handleSearchClose]);
-const handleSearchDetail=()=>{
-  handleSearchClose();
-}
-  return (
-    <div className="search-overlay">
-      <div className="search-box"ref={searchBoxRef}>
-        <InputGroup className="mb-3">
-          <FormControl
-            placeholder="Search..."
-            aria-label="Search"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            autoFocus
-          />
-          <Button variant="secondary" onClick={handleSearchClose}>
-            &times;
-          </Button>
-        </InputGroup>
-        {searchResults.length > 0 && (
-          <ListGroup className="search-results">
-            {searchResults.map((result, index) => (
-              <ListGroup.Item key={index}>
-                <Link to={`/searchdetail/${result.id}`} className="nav-link" onClick={handleSearchDetail}>
-               <strong>{result.topic}</strong>  
-                  <br />
-                  {result.description}
-                  </Link>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        )}
-      </div>
-    </div>
-  );
-}
-
-
-
+ 
 function Auth() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -304,11 +243,13 @@ function Auth() {
   const [isHomeClicked, setIsHomeClicked] = useState(false);
   const [isNotificationClicked, setIsNotificationClicked] = useState(false);
   const [isUploadClicked, setIsUploadClicked] = useState(false);
-  
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-
+  const [navbarVisible, setNavbarVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const searchResultsRef = useRef(null); 
+  const [user,setUser]=useState([]);
   const handleSearchToggle = () => {
     setSearchVisible(true);
      
@@ -377,37 +318,39 @@ function Auth() {
     }
   }
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  useEffect(() => {
-    userVerify();
-  }, []);
-
+  
   useEffect(() => {
     if (progress === 100) {
       setLoading(false); // Progress completed, set loading to false
     }
   }, [progress]);
 
+ useEffect(()=>{
+  userVerify();
+  fetchUserData();
+ },[])
+
   const userVerify = () => {
-    http.get("/userverify").then((res) => {
+   const response =  http.get("/userverify").then((res) => {
       setProgress(40);
       if (res.data.status === 200) {
+        setUser(res.data.user);
         setAuthenticated(true);
       }
       setProgress(100)
     }).catch((error) => {
-      if (error.response.status === 401) {
+      if (error.response && error.response.status === 401) {
         setAuthenticated(false);
-        logout();
-      }
+       logout();
+        
+    } else {
+        console.error("Error verifying user:", error);
+    }
     })
   }
 
- const [navbarVisible, setNavbarVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
+  
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -427,12 +370,7 @@ function Auth() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [lastScrollY]);
 
-    useEffect(()=>{
-      fetchUserData();
-      userVerify();
-  
-    },[]);
-
+    
     const fetchUserData = () => {
       console.log('Fetching user data...');
       http.get("/fetchUser")
@@ -448,7 +386,7 @@ function Auth() {
           .catch((error) => {
               console.error('Error fetching user data:', error);
               if (error.response && error.response.status === 401) {
-                  window.location.href = '/login';
+                  
               }
           });
   }
@@ -458,6 +396,29 @@ function Auth() {
     navigate(`/${subjectName}`);
   }
 
+  // Function to handle search submission
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission
+      navigate(`/searched/${searchTerm}`); // Navigate to the search page with query
+    }
+  };
+
+  // Function to handle clicks outside the search results
+  const handleClickOutside = (event) => {
+    if (searchResultsRef.current && !searchResultsRef.current.contains(event.target)) {
+      setSearchResults([]);
+    }
+  };
+
+  useEffect(() => {
+    // Add event listener to detect clicks outside of search results
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Cleanup event listener on component unmount
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <>
       <LoadingBar
@@ -472,10 +433,41 @@ function Auth() {
               fixed="top">
               <Container fluid>
                 <img src="./image/book.jpg" width="50px" height="50px" style={{ borderRadius: '50%' }} />
-                <Navbar.Brand as={Link} to="/">Notes Sharing</Navbar.Brand>
-                <Nav.Link className="nav-link" onClick={handleSearchToggle}>
-                <FontAwesomeIcon icon={faSearch} style={{marginLeft:"-25px"}} />
-                </Nav.Link>
+                <Navbar.Brand as={Link} to="/">GFN</Navbar.Brand>
+                 
+                <Form
+              role="search"
+              className="d-flex me-auto search-wrapper"
+              onSubmit={(e) => e.preventDefault()} 
+            >
+              <FontAwesomeIcon icon={faSearch} className="search-icon" />
+              <Form.Control
+                type="search"
+                placeholder="Search Topic"
+                aria-label="Search"
+                className="me-2 search-input"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyPress={handleSearch}
+              />
+            </Form>
+            {searchResults.length > 0 && (
+              <ListGroup className="search-results" ref={searchResultsRef}>
+                {searchResults.map((result, index) => (
+                  <ListGroup.Item
+                    key={index}
+                    onClick={() => navigate(`/searched/${result.topic}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <strong>{result.topic}</strong>
+                    <br />
+                    {result.description}
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            )}
+
+
                 <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-${expand}`} />
                 <Navbar.Offcanvas
                   id={`offcanvasNavbar-expand-${expand}`}
@@ -519,7 +511,27 @@ function Auth() {
                  
                     <Nav className="justify-content-end">
                       <NavDropdown title={<i className="bi bi-gear bi-2x" style={{ fontSize: '40px' }}></i>} id={`offcanvasNavbarDropdown-expand-${expand}`} align={{ sm: 'end' }} noCaret>
-                        <NavDropdown.Item as={Link} to='/profile'>Your Profile</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to='/profile'>
+                        
+                      
+                       {user.avatar ? (
+                         <img 
+                           src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:8000/avatar/${user.avatar}`} 
+                           width="30px" 
+                           height="30px" 
+                           style={{ marginLeft:"-10px", borderRadius: '50%' }} 
+                           alt="User Profile"
+                         />
+                       ) : (
+                         <img 
+                           src="./image/book.jpg" 
+                           width="30px" 
+                           height="30px" 
+                           style={{ float: "left", borderRadius: '50%' }} 
+                           alt="User Profile"
+                         />
+                       )}
+                         Your Profile</NavDropdown.Item>
                         <NavDropdown.Divider />
                         <NavDropdown.Item onClick={handleClass}>Join or Create Class</NavDropdown.Item>
                         <NavDropdown.Divider />
@@ -533,15 +545,7 @@ function Auth() {
           ))}
         </>
       )}
-       {/* Add SearchBox Component */}
-       {searchVisible && (
-        <SearchBox
-        searchTerm={searchTerm}
-        handleSearchChange={handleSearchChange}
-        searchResults={searchResults}
-        handleSearchClose={handleSearchClose}
-        />
-      )}
+       
       <ChangeableMovement event={selectedEvent} show={show} setShow={setShow} handleEventSelection={handleEventSelection} />
       <CustomModal show={showClass} onHide={handleClose} />
     </>

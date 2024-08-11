@@ -5,6 +5,7 @@ export default function AuthUser() {
     const getToken = () => {
         const tokenString = localStorage.getItem('token');
         const userToken = tokenString ? JSON.parse(tokenString) : null;
+        
         return userToken;
     }
 
@@ -24,12 +25,20 @@ export default function AuthUser() {
         setUser(user);
     }
 
-    const logout = () => {
-        localStorage.clear();
-        setToken(null);
-        setUser(null);
-        window.location.href = '/login';
-    }
+   // AuthUser.js
+const logout = () => {
+    // Clear tokens from local storage or cookies
+    localStorage.removeItem('token');
+    // Optionally, make a request to the server to invalidate the session
+    http.post('/logout').then(() => {
+      // Redirect to login page or any other page
+      window.location.href = '/login';
+    }).catch((error) => {
+      console.error('Error during logout:', error);
+      window.location.href = '/login';
+    });
+  };
+  
 
     // Set the CSRF token from the meta tag
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -38,13 +47,20 @@ export default function AuthUser() {
         baseURL: "http://127.0.0.1:8000/api/",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-CSRF-TOKEN': csrfToken // Include CSRF token in the headers
+            'Authorization': token ? `Bearer ${token}` : '',
         }
     });
-
+    
+    // http.interceptors.request.use(config => {
+    //     console.log('Request Headers:', config.headers);
+    //     return config;
+    // }, error => {
+    //     return Promise.reject(error);
+    // });
+    
     useEffect(() => {
-        http.defaults.headers['Authorization'] = `Bearer ${token}`;
+        http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
     }, [token]);
 
     return {

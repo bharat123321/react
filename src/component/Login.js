@@ -1,9 +1,10 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthUser from './AuthUser';
 import axios from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Button, Modal, Spinner, Alert } from "react-bootstrap";
 import LoadingBar from 'react-top-loading-bar';
+import {useNavigate} from 'react-router-dom';
 
 function CustomModal({ show, onHide }) {
     const joinclass = () => {
@@ -29,13 +30,14 @@ function CustomModal({ show, onHide }) {
 }
 
 function Login() {
-    const { http, setToken } = AuthUser();
+    const { http, setToken } = AuthUser(); // Retain http here for use in other functions
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [inputErrorList, setInputErrorList] = useState('');
     const [loading, setLoading] = useState(false);
     const [show, setShow] = useState(false);
     const [progress, setProgress] = useState(0);
+    const navigate = useNavigate();
 
     const handleClose = () => {
         setShow(false);
@@ -45,15 +47,15 @@ function Login() {
     const submitForm = (event) => {
         event.preventDefault();
         setLoading(true);
-    
+
         const data = { email, password };
         http.post('/login', data).then((res) => {
             setProgress(50);
             console.log('Login successful:', res.data);
             setToken(res.data.user, res.data.access_token);
-    
+
             setLoading(false);
-    
+
             if (res.data.first_time_login === 1) {
                 setShow(true);
             } else {
@@ -74,15 +76,23 @@ function Login() {
             }
         });
     }
-    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
     const responseGoogle = (response) => {
         console.log('Google OAuth response:', response);
-        http.post('http://localhost:8000/api/auth/google/callback', {
+    
+        axios.post('http://localhost:8000/api/auth/google/callback', {
             token: response.credential
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${response.credential}`,
+                'X-CSRF-TOKEN': csrfToken
+            }
         }).then((res) => {
             console.log('Google login successful:', res.data);
             setToken(res.data.user, res.data.access_token);
-            window.location.href = '/home';
+            window.location.href = "/home";
         }).catch((error) => {
             console.error('Google login error:', error);
         });
@@ -117,11 +127,10 @@ function Login() {
                                     {inputErrorList && <Alert variant="danger">{inputErrorList}</Alert>}
                                     <button className="btn btn-success" disabled={loading}>Submit</button>
                                     {loading && <Spinner animation="border" role="status" className="ml-2"><span className="sr-only"></span></Spinner>}
-                                </form>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-                                
-                            </div>  
+                                </form>
+                            </div>
                         </div>
-                        <GoogleOAuthProvider clientId="1079841177125-ktlvgmunagi4du6sd0alcn6to9ouf877.apps.googleusercontent.com">
+                        <GoogleOAuthProvider clientId="1079841177125-dl0psnuvuhf0nqifqpsg1p92qoqodgfu.apps.googleusercontent.com">
                             <GoogleLogin
                                 onSuccess={responseGoogle}
                                 onFailure={responseGoogle}

@@ -55,7 +55,7 @@ const navigate = useNavigate();
   };
 
   return (
-    <div className="container">
+    <div className="container" >
       <h3>Results for: {searchTerm}</h3>
       {loading ? (
         <div className="text-center my-4">

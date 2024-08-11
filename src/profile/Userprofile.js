@@ -9,23 +9,23 @@ import BookMark from '../profile/BookMark';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Pagepdf from '../dasboard/Pagepdf';
-
+import '../dasboard/Book.js';
 function Userprofile() {
     const [closeprofile, setCloseprofile] = useState(true);
     const [show, setShow] = useState(false);
     const [activeButton, setActiveButton] = useState(''); // State to track active button
     const { http } = AuthUser();
-    const [userData, setUserData] = useState([]); // Initialize as an empty array
+    const [userData, setUserData] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
-    const [selectedSubject, setSelectedSubject] = useState(null);
+    const [selectedSubject, setSelectedSubject] = useState(false);
     const navigate = useNavigate();
 
     const handleButtonClick = (buttonName) => {
         setShow(true);
         setCloseprofile(false);
         setActiveButton(buttonName); // Set the active button when clicked
-        setSelectedSubject(null);
+        setSelectedSubject(false);
     };
 
     useEffect(() => {
@@ -59,6 +59,7 @@ function Userprofile() {
                 setUserData(files);
                 setLoading(false);
                 setProgress(100);
+                setSelectedSubject(true);
             })
             .catch((error) => {
                 console.error("Error fetching user files:", error);
@@ -101,7 +102,7 @@ function Userprofile() {
                 </Container>
             </Navbar>
             <hr />
-
+          {selectedSubject &&
             <Card className="col-md-12">
                 <Card.Header>Your File</Card.Header>
                 {Array.isArray(userData) && userData.length > 0 ? (
@@ -131,6 +132,7 @@ function Userprofile() {
                     <p>No data available</p>
                 )}
             </Card>
+            }
 
             {activeButton === 'userDetail' && <Userdetail />}
             {activeButton === 'bookmark' && <BookMark />}

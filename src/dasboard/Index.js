@@ -24,7 +24,7 @@ function Index() {
         </Card.Body>
          
       </Card>
-      <Card className="card-spacing">
+      <Card className="card-spacing" as={Link} to="/pdftoword">
         <Card.Img variant="top" src="holder.js/100px160" />
         <Card.Body>
           <Card.Title>Pdf To Word</Card.Title>

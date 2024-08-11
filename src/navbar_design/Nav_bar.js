@@ -75,7 +75,7 @@ function Nav_bar() {
             <Form
               role="search"
               className="d-flex me-auto search-wrapper"
-              onSubmit={(e) => e.preventDefault()} // Prevent form submission
+              onSubmit={(e) => e.preventDefault()} 
             >
               <FontAwesomeIcon icon={faSearch} className="search-icon" />
               <Form.Control

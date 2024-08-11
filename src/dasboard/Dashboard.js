@@ -61,9 +61,11 @@ const navigate = useNavigate();
     setShow(true);
     setShowUploadOptions(false);
   };
-   const handleCard=(index)=>{
-    navigate(`todownloadbook/${index}`)
-   }
+  const handleCard = (id) => {
+    console.log("Navigating to:", `/todownloadbook/${id}`);
+    navigate(`/todownloadbook/${id}`);
+}
+
   return (
     <div className="scrollable-container" style={{ marginTop: "110px" }}>
       {loading ? (
@@ -79,18 +81,21 @@ const navigate = useNavigate();
                 </button>
                 <div className="topic-cards" id={`scroll-${topic}`}>
                   {groupedData[topic].map((item, i) => (
-                    <Card key={i} className="custom-card" style={{cursor:"pointer"}} onClick={()=>handleCard(item.id)}>
-                      <div className="pdf-preview">
-                        <Pagepdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
-                        <p className="designPdf">PDF</p>
-                      </div>
-                      <Card.Body className="d-flex flex-column justify-content-between">
-                        <div>
-                          <Card.Title>{item.topic}</Card.Title>
-                          <Card.Text className="nav-link text-left" as={Link} to={`/viewdetail/${item.id}`}><b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b></Card.Text>
+                    <Link to={`/todownloadbook/${item.id}`} style={{ cursor: "pointer",textDecoration:"none" }}>
+                    <Card key={i} className="custom-card" >
+                        <div className="pdf-preview">
+                            <Pagepdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
+                            <p className="designPdf">PDF</p>
                         </div>
-                      </Card.Body>
+                        <Card.Body className="d-flex flex-column justify-content-between">
+                            <div>
+                                <Card.Title>{item.topic}</Card.Title>
+                                <Card.Text><b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b></Card.Text>
+                            </div>
+                        </Card.Body>
                     </Card>
+                </Link>
+                
                   ))}
                 </div>
                 <button className="scroll-button right" onClick={() => scrollRight(topic)}>

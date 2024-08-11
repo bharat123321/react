@@ -142,6 +142,7 @@ function Viewbook() {
                   <span>{likeCount}</span>
                   <textarea
                     value={commentText}
+                    // eslint-disable-next-line no-sequences
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Add a comment..."
                     style={{ width: '100%', marginTop: '10px' }}
