@@ -33,7 +33,9 @@ import Searchenter from './before/Searchenter';
 import SearchEnter from './after/SearchEnter';
 import Downloadbook from './dasboard/Downloadbook';
 import BookMark from './profile/BookMark';
-
+import File from './Admin/PostVerified';
+import Upload from './User/Upload';
+import './dasboard/Dashboard.css';
 function App() {
     const { getToken } = AuthUser();
     const [loggedIn, setLoggedIn] = useState(!!getToken());
@@ -75,6 +77,8 @@ function App() {
                         <Route path="/:subjectname" element={<SubjectComponent />} />
                         <Route path="/bookmark" element={<BookMark />} />
                         <Route path="/searched/:searchTerm" element={<SearchEnter />} />
+                        <Route path="/file" element={<File/>}/>
+                        <Route path="/upload" element={<Upload/>}/>
                     </>
                 )}
                 {/* Default Route */}

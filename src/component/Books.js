@@ -48,10 +48,10 @@ function Books() {
     const groupByTopic = () => {
         const groupedData = {};
         userData.forEach(item => {
-            if (!groupedData[item.topic]) {
-                groupedData[item.topic] = [];
+            if (!groupedData[item.category]) {
+                groupedData[item.category] = [];
             }
-            groupedData[item.topic].push(item);
+            groupedData[item.category].push(item);
         });
         return groupedData;
     };
@@ -78,7 +78,7 @@ function Books() {
                                             <div className="pdf-preview">
                                                 <Pagepdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
                                                 <p className="designPdf">PDF</p>
-                                            </div>
+                                                             </div>
                                             <Card.Body className="d-flex flex-column justify-content-between">
                                                 <div>  
                                                     <Card.Title>{item.topic}</Card.Title>

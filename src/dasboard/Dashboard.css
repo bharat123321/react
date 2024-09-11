@@ -1,0 +1,33 @@
+.scrollable-container {
+  overflow-x: hidden;
+}
+
+.topic-scroll-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.topic-cards {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  scroll-behavior: smooth;
+}
+
+.scroll-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #333;
+}
+
+.custom-card {
+  min-width: 200px;
+  margin-right: 15px;
+  transition: transform 0.2s;
+}
+
+.custom-card:hover {
+  transform: scale(1.05);
+}

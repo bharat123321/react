@@ -1,0 +1,39 @@
+.post-verified-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.pdf-preview {
+  display: flex;
+  align-items: center;
+}
+
+.pdf-thumbnail {
+  width: 80px; /* Small thumbnail size */
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.designPdf {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #007bff;
+  cursor: pointer;
+}
+
+button {
+  width: 100px;
+}
+
+.bi-check-circle, .bi-x-circle {
+  margin-right: 5px;
+}
+.custom-card {
+    width: 12rem;
+    height: 18rem;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; 
+}

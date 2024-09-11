@@ -102,37 +102,43 @@ function Userprofile() {
                 </Container>
             </Navbar>
             <hr />
-          {selectedSubject &&
-            <Card className="col-md-12">
-                <Card.Header>Your File</Card.Header>
-                {Array.isArray(userData) && userData.length > 0 ? (
-                    userData.map((item, index) => {
-                        const fileUrl = `http://127.0.0.1:8000/api/files/${item.file}`;
-                        console.log('Constructed file URL:', fileUrl);
-                        return (
-                            <Card border="dark" key={index} className="col-md-4">
-                                <div className="pdf-preview">
-                                    <Pagepdf url={fileUrl} />
-                                    <p className="designPdf">PDF</p>
-                                </div>
-                                <Card.Body>
-                                    <div>
-                                        <Card.Title>{item.category}</Card.Title>
-                                        <Card.Title>{item.file}</Card.Title>
-                                        <Card.Text className="nav-link text-left" as={Link} to={`/viewdetail/${item.id}`}>
-                                            <b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b>
-                                        </Card.Text>
-                                    </div>
-                                    <Button variant="primary" onClick={() => handleDownload(item.id)}>Download</Button>
-                                </Card.Body>
-                            </Card>
-                        );
-                    })
-                ) : (
-                    <p>No data available</p>
-                )}
-            </Card>
-            }
+     {selectedSubject && (
+  <Card className="col-md-12">
+    <Card.Header>Your File</Card.Header>
+    {Array.isArray(userData) && userData.length > 0 ? (
+      <div className="d-flex flex-wrap"> {/* Use flexbox to align cards horizontally */}
+        {userData.map((item, index) => {
+          const fileUrl = `http://127.0.0.1:8000/api/files/${item.file}`;
+          return (
+            <div className="col-md-4 mb-4" key={item.id}> {/* Added mb-4 for margin between cards */}
+              <Card className="h-100 shadow-sm d-flex flex-row"> {/* Added flex-row for horizontal layout */}
+                <div className="d-flex align-items-center p-3">
+                  {/* PDF preview section */}
+                  <div className="pdf-preview" style={{ cursor: 'pointer', width: '120px', height: '120px' }}>
+                    <Pagepdf url={fileUrl} />
+                    <p className="designPdf"style={{color:"white"}}>PDF</p>
+                  </div>
+                </div>
+                <Card.Body>
+                  <div>
+                    <Card.Title>{item.category}</Card.Title>
+                    <Card.Subtitle className="mb-2 text-muted">{item.file}</Card.Subtitle>
+                    <Card.Text className="nav-link text-left" as={Link} to={`/viewdetail/${item.id}`}>
+                      <b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b>
+                    </Card.Text>
+                  </div>
+                  <Button variant="primary" onClick={() => handleDownload(item.id)}>Download</Button>
+                </Card.Body>
+              </Card>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <p>No data available</p>
+    )}
+  </Card>
+)}
 
             {activeButton === 'userDetail' && <Userdetail />}
             {activeButton === 'bookmark' && <BookMark />}

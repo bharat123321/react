@@ -5,7 +5,7 @@ function Index() {
   return (
     <CardGroup>
       <Card className="card-spacing" as={Link} to="/imgtotext">
-        <Card.Img variant="top" src="holder.js/100px160" />
+        <Card.Img variant="top" src="./image/imgtotxt.png"/>
         <Card.Body>
           <Card.Title style={{textAlign:"center"}}>Convert Image to Text</Card.Title>
           <p>Converting an image to text using (OCR) involves extracting textual content from images 

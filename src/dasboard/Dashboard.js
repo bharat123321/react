@@ -3,9 +3,9 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import AuthUser from '../component/AuthUser';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import './Book.css';
+
 import Pagepdf from './Pagepdf';
-import { Link ,useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BiPlus } from 'react-icons/bi';
 import Upload from './Upload';
 
@@ -16,7 +16,8 @@ function Dashboard() {
   const [show, setShow] = useState(false);
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState('Image');
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchDatas();
   }, []);
@@ -61,10 +62,10 @@ const navigate = useNavigate();
     setShow(true);
     setShowUploadOptions(false);
   };
+
   const handleCard = (id) => {
-    console.log("Navigating to:", `/todownloadbook/${id}`);
     navigate(`/todownloadbook/${id}`);
-}
+  };
 
   return (
     <div className="scrollable-container" style={{ marginTop: "110px" }}>
@@ -75,27 +76,26 @@ const navigate = useNavigate();
           {Object.keys(groupedData).map((topic, index) => (
             <div key={index} className="topic-container">
               <h2>{topic}</h2>
-              <div className="topic-scroll-wrapper">
+              <div className="topic-scroll-wrapper" style={{ position: 'relative' }}>
                 <button className="scroll-button left" onClick={() => scrollLeft(topic)}>
                   <FiChevronLeft />
                 </button>
                 <div className="topic-cards" id={`scroll-${topic}`}>
                   {groupedData[topic].map((item, i) => (
-                    <Link to={`/todownloadbook/${item.id}`} style={{ cursor: "pointer",textDecoration:"none" }}>
-                    <Card key={i} className="custom-card" >
+                    <Link to={`/todownloadbook/${item.id}`} key={i} style={{ cursor: "pointer", textDecoration: "none" }}>
+                      <Card className="custom-card">
                         <div className="pdf-preview">
-                            <Pagepdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
-                            <p className="designPdf">PDF</p>
+                          <Pagepdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
+                          <p className="designPdf" style={{ color: "white" }}>PDF</p>
                         </div>
                         <Card.Body className="d-flex flex-column justify-content-between">
-                            <div>
-                                <Card.Title>{item.topic}</Card.Title>
-                                <Card.Text><b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b></Card.Text>
-                            </div>
+                          <div>
+                            <Card.Title>{item.topic}</Card.Title>
+                            <Card.Text><b style={{ fontSize: "12px" }}>Added By {item.firstname} ...</b></Card.Text>
+                          </div>
                         </Card.Body>
-                    </Card>
-                </Link>
-                
+                      </Card>
+                    </Link>
                   ))}
                 </div>
                 <button className="scroll-button right" onClick={() => scrollRight(topic)}>
@@ -104,6 +104,8 @@ const navigate = useNavigate();
               </div>
             </div>
           ))}
+
+          {/* Floating Upload Button */}
           <Button
             variant="primary"
             style={{
@@ -144,7 +146,6 @@ const navigate = useNavigate();
           )}
 
           <Upload event={selectedEvent} show={show} setShow={setShow} />
-
         </>
       )}
     </div>

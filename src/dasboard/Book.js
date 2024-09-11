@@ -44,16 +44,17 @@ function Book() {
         }
     }
 
+    
     const groupByTopic = () => {
-        const groupedData = {};
-        userData.forEach(item => {
-            if (!groupedData[item.topic]) {
-                groupedData[item.topic] = [];
-            }
-            groupedData[item.topic].push(item);
-        });
-        return groupedData;
-    };
+    const groupedData = {};
+    userData.forEach(item => {
+      if (!groupedData[item.category]) {
+        groupedData[item.category] = [];
+      }
+      groupedData[item.category].push(item);
+    });
+    return groupedData;
+  };
 
     const groupedData = groupByTopic();
 
