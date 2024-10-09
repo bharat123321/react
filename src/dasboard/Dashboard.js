@@ -139,8 +139,7 @@ function Dashboard() {
               zIndex: 1000
             }}>
               <ul style={{ listStyleType: 'none', margin: 0, padding: '10px' }}>
-                <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleFile}>Upload File</li>
-                <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleImage}>Upload Image</li>
+                <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleFile}>Upload Single File</li>
               </ul>
             </div>
           )}

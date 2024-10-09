@@ -1,0 +1,15 @@
+
+.custom-card {
+    width: 100%; /* Use full width of the column */
+    max-width: 500px; /* Set a maximum width */
+    margin: auto; /* Center the card */
+}
+
+.heading {
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hides overflow */
+    text-overflow: ellipsis; /* Adds ellipsis (...) for overflowed text */
+}
+.btn{
+    white-space: nowrap;
+}

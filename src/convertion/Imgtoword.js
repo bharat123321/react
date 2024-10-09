@@ -1,264 +1,125 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { FaTimes } from "react-icons/fa";
-import Tesseract from "tesseract.js";
-import { Document, Packer, Paragraph, TextRun } from "docx";
-import { saveAs } from "file-saver";
+import React, { useState } from 'react';
+import Mammoth from 'mammoth';
+import { jsPDF } from 'jspdf';
+import PptxGenJS from 'pptxgenjs';
 
-function Imgtoword() {
-  const [images, setImages] = useState([]);
-  const [textResults, setTextResults] = useState({});
-  const [selectedLanguage, setSelectedLanguage] = useState("eng");
-  const [progress, setProgress] = useState({});
-  const fileInputRef = useRef(null);
+const Imgtoword = () => {
+  const [pdfData, setPdfData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  const handleFiles = (files) => {
-    const validImages = [];
-    const validTypes = ["image/jpeg", "image/png", "image/gif"];
+  // Handle File Upload
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    Array.from(files).forEach((file) => {
-      if (validTypes.includes(file.type)) {
-        validImages.push(file);
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+    try {
+      if (fileExtension === 'docx') {
+        // Convert DOCX to PDF
+        await convertDocxToPdf(file);
+      } else if (fileExtension === 'pptx') {
+        // Convert PPTX to PDF
+        await convertPptxToPdf(file);
+      } else if (fileExtension === 'pdf') {
+        // Display PDF directly
+        displayPdf(file);
       } else {
-        toast.error("Please upload only image files (jpeg, png, gif).");
+        setErrorMessage('Only DOCX, PPTX, and PDF files are supported.');
       }
-    });
-
-    setImages([...images, ...validImages]);
+    } catch (error) {
+      setErrorMessage('Failed to process the file: ' + error.message);
+    }
   };
 
-  const handleInputChange = (e) => {
-    handleFiles(e.target.files);
-  };
+  // DOCX to PDF Conversion
+  const convertDocxToPdf = async (file) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const result = await Mammoth.extractRawText({ arrayBuffer: reader.result });
+        const doc = new jsPDF();
+        
+        // Split the text into lines to handle wrapping
+        const lines = doc.splitTextToSize(result.value, 180); // 180mm width
+        let y = 10; // Start at 10mm height
 
-  const openFileDialog = () => {
-    fileInputRef.current.click();
-  };
-
-  const removeImage = (index) => {
-    const newImages = [...images];
-    newImages.splice(index, 1);
-    setImages(newImages);
-
-    const newTextResults = { ...textResults };
-    delete newTextResults[index];
-    setTextResults(newTextResults);
-
-    const newProgress = { ...progress };
-    delete newProgress[index];
-    setProgress(newProgress);
-  };
-
-  const convertImageToText = (image, index) => {
-    Tesseract.recognize(image, selectedLanguage, {
-      logger: (m) => {
-        if (m.status === "recognizing text") {
-          setProgress((prevProgress) => ({
-            ...prevProgress,
-            [index]: m.progress,
-          }));
+        // Add text line by line and create new pages if necessary
+        for (let i = 0; i < lines.length; i++) {
+          if (y > 280) { // Page height limit
+            doc.addPage();
+            y = 10; // Reset the vertical position
+          }
+          doc.text(lines[i], 10, y); // Add the line to PDF
+          y += 10; // Increment y position for the next line
         }
-      },
-    })
-      .then(({ data: { text } }) => {
-        setTextResults((prevResults) => ({
-          ...prevResults,
-          [index]: text,
-        }));
-        toast.success(`Text extracted from ${image.name}`);
-      })
-      .catch((err) => {
-        toast.error(`Failed to extract text from ${image.name}: ${err.message}`);
+
+        const pdfBlob = doc.output('blob');
+        displayPdfBlob(pdfBlob);
+      } catch (error) {
+        setErrorMessage('Error converting DOCX: ' + error.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  // PPTX to PDF Conversion
+  const convertPptxToPdf = async (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const pptx = new PptxGenJS();
+      pptx.load(file).then(async (ppt) => {
+        const doc = new jsPDF();
+
+        // Iterate over each slide and convert it to an image
+        for (let i = 0; i < ppt.slides.length; i++) {
+          const slide = ppt.slides[i];
+          const slideDataUrl = await slideToImage(slide); // Custom function to convert slide to image
+          doc.addImage(slideDataUrl, 'PNG', 10, 10, 180, 100); // Add image to PDF
+          if (i !== ppt.slides.length - 1) doc.addPage(); // Add new page for the next slide
+        }
+
+        const pdfBlob = doc.output('blob');
+        displayPdfBlob(pdfBlob);
+      }).catch(error => setErrorMessage('Error converting PPTX: ' + error.message));
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  // Function to convert a slide to an image (for pptx to pdf conversion)
+  const slideToImage = async (slide) => {
+    return new Promise((resolve) => {
+      slide.exportAsDataURL((dataUrl) => {
+        resolve(dataUrl);
       });
-  };
-
-  const downloadWordFile = (index) => {
-    const text = textResults[index];
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [new Paragraph({
-            children: [
-              new TextRun({
-                text: text,
-                break: 1
-              })
-            ]
-          })],
-        },
-      ],
-    });
-
-    Packer.toBlob(doc).then((blob) => {
-      saveAs(blob, `${images[index].name.split('.').slice(0, -1).join('.')}.docx`);
     });
   };
 
-  useEffect(() => {
-    const handleGlobalDrop = (e) => {
-      e.preventDefault();
-      handleFiles(e.dataTransfer.files);
-    };
+  // Display generated or uploaded PDF
+  const displayPdfBlob = (pdfBlob) => {
+    const url = URL.createObjectURL(pdfBlob);
+    setPdfData(url);
+  };
 
-    const handleGlobalDragOver = (e) => {
-      e.preventDefault();
-    };
-
-    document.addEventListener("drop", handleGlobalDrop);
-    document.addEventListener("dragover", handleGlobalDragOver);
-
-    return () => {
-      document.removeEventListener("drop", handleGlobalDrop);
-      document.removeEventListener("dragover", handleGlobalDragOver);
-    };
-  }, []);
+  // Display an existing PDF file
+  const displayPdf = (file) => {
+    const url = URL.createObjectURL(file);
+    setPdfData(url);
+  };
 
   return (
-    <div style={{ width: "80%", margin: "0 auto", padding: "20px" }}>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-      <h1 style={{ textAlign: "center" }}>
-        <b>Convert Image To Word</b>
-      </h1>
-      <p style={{ textAlign: "center", fontSize: "17px", color: "gray" }}>
-        Converting an image to text using OCR involves extracting textual
-        content from images.
-      </p>
-      <div
-        style={{
-          border: "2px dashed #ccc",
-          borderRadius: "10px",
-          padding: "20px",
-          textAlign: "center",
-          marginBottom: "20px",
-        }}
-      >
-        <input
-          type="file"
-          accept="image/jpeg, image/png, image/gif"
-          multiple
-          onChange={handleInputChange}
-          style={{ display: "none" }}
-          ref={fileInputRef}
-        />
-        <button
-          className="btn btn-success"
-          style={{ padding: "10px 40px", marginBottom: "10px" }}
-          onClick={openFileDialog}
-        >
-          <b>Upload Image</b>
-        </button>
-        <br />
-        <span>or drag and drop files here</span>
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-        {images.map((image, index) => (
-          <div
-            key={index}
-            style={{
-              position: "relative",
-              textAlign: "center",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-              padding: "10px",
-            }}
-          >
-            <img
-              src={URL.createObjectURL(image)}
-              alt="Preview"
-              style={{ width: "150px", height: "150px", objectFit: "cover" }}
-            />
-            <FaTimes
-              onClick={() => removeImage(index)}
-              style={{
-                position: "absolute",
-                top: "5px",
-                right: "5px",
-                cursor: "pointer",
-                color: "red",
-              }}
-            />
-            <p style={{ margin: "10px 0 0 0" }}>{image.name}</p>
-            <select
-              id="language-select"
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-              style={{ marginBottom: "10px" }}
-            >
-              <option value="eng">English</option>
-              <option value="nep">Nepali</option>
-              <option value="spa">Spanish</option>
-              <option value="fra">French</option>
-              <option value="deu">German</option>
-              <option value="ita">Italian</option>
-              {/* Add more languages as needed */}
-            </select>
-            <button
-              className="btn btn-primary"
-              style={{ marginTop: "10px" }}
-              onClick={() => convertImageToText(image, index)}
-            >
-              Convert
-            </button>
-            {progress[index] && (
-              <div
-                style={{
-                  marginTop: "10px",
-                  backgroundColor: "#e0e0e0",
-                  borderRadius: "5px",
-                  width: "100%",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${progress[index] * 100}%`,
-                    backgroundColor: "#76c7c0",
-                    padding: "5px",
-                    borderRadius: "5px",
-                  }}
-                >
-                  <span style={{ color: "white" }}>
-                    {(progress[index] * 100).toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-            )}
-            {textResults[index] && (
-              <div style={{ marginTop: "10px", textAlign: "left" }}>
-                <h5>Extracted Text:</h5>
-                <pre
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    wordWrap: "break-word",
-                    border: "1px solid #ccc",
-                    padding: "10px",
-                    borderRadius: "5px",
-                    maxHeight: "150px",
-                    overflowY: "auto",
-                    backgroundColor: "#f9f9f9",
-                  }}
-                >
-                  {textResults[index]}
-                </pre>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => downloadWordFile(index)}
-                >
-                  Download Word
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      <div style={{ textAlign: "right", marginTop: "20px" }}>
-        <button className="btn btn-secondary" onClick={openFileDialog}>
-          Add More
-        </button>
-      </div>
+    <div>
+      <h1>Upload DOCX, PPTX or PDF to Convert to PDF</h1>
+      <input type="file" accept=".docx,.pptx,.pdf" onChange={handleFileUpload} />
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      {pdfData && (
+        <div>
+          <embed src={pdfData} type="application/pdf" width="100%" height="600px" />
+          <a href={pdfData} download="converted.pdf">Download PDF</a>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default Imgtoword;

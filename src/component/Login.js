@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AuthUser from './AuthUser';
 import axios from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { Button, Modal, Spinner, Alert } from "react-bootstrap";
+import { Button, Modal, Spinner, Alert,Nav } from "react-bootstrap";
 import LoadingBar from 'react-top-loading-bar';
-import {useNavigate} from 'react-router-dom';
+import { useNavigate,Link } from 'react-router-dom';
 
 function CustomModal({ show, onHide }) {
-    const joinclass = () => {
+    const joinClass = () => {
         window.location.href = "/join";
     }
-    const createclass = () => {
+    const createClass = () => {
         window.location.href = "/create";
     }
     return (
@@ -18,8 +18,8 @@ function CustomModal({ show, onHide }) {
             <Modal.Body>Select Class</Modal.Body>
             <Modal.Footer style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <Button variant="primary" onClick={joinclass}>Join Class</Button>
-                    <Button variant="success" onClick={createclass}>Create Class</Button>
+                    <Button variant="primary" onClick={joinClass}>Join Class</Button>
+                    <Button variant="success" onClick={createClass}>Create Class</Button>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <Button variant="secondary" onClick={onHide}> Close</Button>
@@ -30,7 +30,7 @@ function CustomModal({ show, onHide }) {
 }
 
 function Login() {
-    const { http, setToken } = AuthUser(); // Retain http here for use in other functions
+    const { http, setToken } = AuthUser();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [inputErrorList, setInputErrorList] = useState('');
@@ -53,11 +53,10 @@ function Login() {
             setProgress(50);
             console.log('Login successful:', res.data);
             setToken(res.data.user, res.data.access_token);
-
             setLoading(false);
 
-            if (res.data.first_time_login === 1) {
-                setShow(true);
+            if (res.data.user.email_verified_at == null) {
+                window.location.href="/email/verify"
             } else {
                 window.location.href = '/home';
             }
@@ -76,6 +75,7 @@ function Login() {
             }
         });
     }
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     const responseGoogle = (response) => {
@@ -97,7 +97,8 @@ function Login() {
             console.error('Google login error:', error);
         });
     };
-    
+
+  
 
     return (
         <>
@@ -124,13 +125,18 @@ function Login() {
                                     <div className="checkbox">
                                         <label> <input type="checkbox" className="incenter" /> Remember me</label>
                                     </div>
+                                   <div className="align-items-center">
+                                    <Nav.Link as={Link} to="/resetaccount" style={{ color: "blue", textAlign: "right" }}>
+                                        Forgot Password?
+                                    </Nav.Link>
+                                </div>
                                     {inputErrorList && <Alert variant="danger">{inputErrorList}</Alert>}
                                     <button className="btn btn-success" disabled={loading}>Submit</button>
                                     {loading && <Spinner animation="border" role="status" className="ml-2"><span className="sr-only"></span></Spinner>}
                                 </form>
                             </div>
                         </div>
-                        <GoogleOAuthProvider clientId="1079841177125-dl0psnuvuhf0nqifqpsg1p92qoqodgfu.apps.googleusercontent.com">
+                        <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
                             <GoogleLogin
                                 onSuccess={responseGoogle}
                                 onFailure={responseGoogle}

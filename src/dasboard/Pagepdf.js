@@ -9,9 +9,8 @@ function Pagepdf({ url }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+   pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    
 
     useEffect(() => {
         const fetchPdf = async () => {

@@ -2,30 +2,36 @@ import React, { useState, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import Mammoth from "mammoth";
+import { read, utils } from "xlsx";
+import PptxGenJS from "pptxgenjs";
+import jsPDF from "jspdf";
+import { Document, Page, pdfjs } from "react-pdf";
 
-import { pdfjs } from 'react-pdf';
-
-// Manually set the workerSrc to the specific version
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// Setting the worker for pdf.js
+pdfjs.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 function Upload() {
   const [documents, setDocuments] = useState([]);
   const [docData, setDocData] = useState({});
+  const [pdfPreviews, setPdfPreviews] = useState([]);
   const fileInputRef = useRef(null);
 
   const handleFiles = async (files) => {
     const validDocuments = [];
     const validTypes = [
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PPTX
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
+      "application/pdf", // PDF
     ];
 
     Array.from(files).forEach((file) => {
       if (validTypes.includes(file.type)) {
         validDocuments.push(file);
       } else {
-        toast.error("Please upload only DOCX, PPTX, or PDF files.");
+        toast.error("Please upload only DOCX, PPTX, XLSX, or PDF files.");
       }
     });
 
@@ -36,7 +42,6 @@ function Upload() {
         const file = validDocuments[i];
         console.log(`Processing file: ${file.name}`);
 
-        // Check file size before conversion
         if (file.size === 0) {
           toast.error(`The file ${file.name} is empty.`);
           continue;
@@ -44,9 +49,9 @@ function Upload() {
 
         let pdfBlob;
         if (file.type === "application/pdf") {
-          pdfBlob = file;
+          pdfBlob = file; // Already a PDF
         } else {
-          pdfBlob = await convertToPDF(file); // Conversion logic here
+          pdfBlob = await convertToPDF(file); // Convert other files to PDF
         }
 
         console.log(`Converted PDF size for ${file.name}: ${pdfBlob.size}`);
@@ -67,10 +72,72 @@ function Upload() {
   };
 
   const convertToPDF = async (file) => {
-    // Implement actual conversion logic here
+    const fileExtension = file.name.split(".").pop().toLowerCase();
+
+    if (fileExtension === "docx") {
+      return await convertDocxToPDF(file);
+    }
+
+    if (fileExtension === "xlsx") {
+      return convertXlsxToPDF(file);
+    }
+
+    if (fileExtension === "pptx") {
+      return convertPptxToPDF(file);
+    }
+
+    return null;
+  };
+
+  const convertDocxToPDF = async (file) => {
     toast.info(`Converting ${file.name} to PDF...`);
-    const pdfBlob = new Blob(); // Placeholder - Replace with actual conversion logic
-    return pdfBlob;
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onload = async (event) => {
+        const arrayBuffer = event.target.result;
+        const result = await Mammoth.extractRawText({ arrayBuffer });
+        const pdfDoc = new jsPDF();
+        pdfDoc.text(result.value, 10, 10);
+        pdfDoc.save(`${file.name.split(".")[0]}.pdf`);
+        resolve(pdfDoc.output("blob"));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const convertXlsxToPDF = (file) => {
+    toast.info(`Converting ${file.name} to PDF...`);
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onload = (event) => {
+        const data = event.target.result;
+        const workbook = read(data, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const csvData = utils.sheet_to_csv(worksheet);
+
+        const pdfDoc = new jsPDF();
+        pdfDoc.text(csvData, 10, 10);
+        resolve(pdfDoc.output("blob"));
+      };
+      reader.onerror = reject;
+      reader.readAsBinaryString(file);
+    });
+  };
+
+  const convertPptxToPDF = (file) => {
+    toast.info(`Converting ${file.name} to PDF...`);
+    return new Promise((resolve, reject) => {
+      const ppt = new PptxGenJS();
+      const pdfDoc = new jsPDF();
+      ppt.load(file, function (data) {
+        pdfDoc.text(data.slides, 10, 10);
+        resolve(pdfDoc.output("blob"));
+      });
+    });
   };
 
   const splitPDF = async (pdfBlob) => {
@@ -84,6 +151,7 @@ function Upload() {
       const pdfDoc = await loadingTask.promise;
       const totalPages = pdfDoc.numPages;
       const pdfParts = [];
+      const previews = [];
 
       for (let i = 1; i <= totalPages; i++) {
         const page = await pdfDoc.getPage(i);
@@ -101,12 +169,16 @@ function Upload() {
         await page.render(renderContext).promise;
         canvas.toBlob((blob) => {
           if (blob) {
+            const pdfPartUrl = URL.createObjectURL(blob);
+            previews.push(pdfPartUrl);
             pdfParts.push(blob);
           } else {
             toast.error(`Failed to render page ${i}.`);
           }
         });
       }
+
+      setPdfPreviews((prevPreviews) => [...prevPreviews, ...previews]);
 
       return pdfParts;
     } catch (error) {
@@ -152,7 +224,6 @@ function Upload() {
   };
 
   const handleRemove = (index) => {
-    // Trigger download before removal
     const doc = documents[index];
     const downloadLink = URL.createObjectURL(doc);
     const link = document.createElement("a");
@@ -162,7 +233,6 @@ function Upload() {
     link.click();
     document.body.removeChild(link);
 
-    // Remove after download
     setDocuments((prevDocs) => prevDocs.filter((_, i) => i !== index));
     setDocData((prevData) => {
       const newDocData = { ...prevData };
@@ -186,7 +256,7 @@ function Upload() {
       >
         <input
           type="file"
-          accept=".docx, .pptx, .pdf"
+          accept=".docx, .pptx, .xlsx, .pdf"
           multiple
           onChange={handleInputChange}
           style={{ display: "none" }}
@@ -209,84 +279,69 @@ function Upload() {
           style={{
             marginBottom: "20px",
             border: "1px solid #ccc",
-            padding: "20px",
             borderRadius: "10px",
-            position: "relative",
+            padding: "15px",
           }}
         >
-          <button
-            onClick={() => handleRemove(index)}
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "10px",
-              background: "red",
-              color: "white",
-              border: "none",
-              borderRadius: "50%",
-              width: "30px",
-              height: "30px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-            }}
-          >
-            &times;
-          </button>
-
-          <h5>Document Part {index + 1}</h5>
-          <embed src={URL.createObjectURL(doc)} width="100%" height="200px" />
-
-          <div style={{ marginTop: "20px" }}>
-            <label>Title</label>
+          <h5>{doc.name}</h5>
+          <div className="form-group">
+            <label htmlFor={`title-${index}`}>Title</label>
             <input
               type="text"
               className="form-control"
+              id={`title-${index}`}
               value={docData[index]?.title || ""}
               onChange={(e) => handleFieldChange(index, "title", e.target.value)}
             />
-
-            <label style={{ marginTop: "10px" }}>Description</label>
+          </div>
+          <div className="form-group">
+            <label htmlFor={`description-${index}`}>Description</label>
             <textarea
               className="form-control"
+              id={`description-${index}`}
               rows="3"
               value={docData[index]?.description || ""}
-              onChange={(e) => handleFieldChange(index, "description", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange(index, "description", e.target.value)
+              }
             />
-
-            <label style={{ marginTop: "10px" }}>Category</label>
+          </div>
+          <div className="form-group">
+            <label htmlFor={`category-${index}`}>Category</label>
             <input
               type="text"
               className="form-control"
+              id={`category-${index}`}
               value={docData[index]?.category || ""}
-              onChange={(e) => handleFieldChange(index, "category", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange(index, "category", e.target.value)
+              }
             />
-
-            <button
-              className="btn btn-primary"
-              style={{ marginTop: "10px" }}
-              onClick={() => handleSubmit(index)}
-            >
-              Submit
-            </button>
           </div>
 
-          <hr style={{ marginTop: "30px" }} />
+          <button
+            className="btn btn-primary"
+            onClick={() => handleSubmit(index)}
+            style={{ marginRight: "10px" }}
+          >
+            Submit Part {index + 1}
+          </button>
+          <button
+            className="btn btn-danger"
+            onClick={() => handleRemove(index)}
+          >
+            Remove Part {index + 1}
+          </button>
+
+          {pdfPreviews[index] && (
+            <div style={{ marginTop: "20px" }}>
+              <Document file={pdfPreviews[index]}>
+                <Page pageNumber={1} />
+              </Document>
+            </div>
+          )}
         </div>
       ))}
-
-      {documents.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
-            className="btn btn-secondary"
-            style={{ marginTop: "20px" }}
-            onClick={openFileDialog}
-          >
-            <b>Add More Documents</b>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

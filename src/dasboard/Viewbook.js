@@ -140,24 +140,14 @@ function Viewbook() {
                     style={{ cursor: 'pointer', color: liked ? 'black' : 'gray', marginRight: '10px' }}
                   />
                   <span>{likeCount}</span>
-                  <textarea
-                    value={commentText}
-                    // eslint-disable-next-line no-sequences
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Add a comment..."
-                    style={{ width: '100%', marginTop: '10px' }}
-                  />
-                  <Button variant="link" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-                    Emoji
-                  </Button>
-                  {showEmojiPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
-                  <Button variant="primary" style={{ marginTop: '5px' }}>
-                    Submit
-                  </Button>
+                   
                 </Card.Body>
+              
               </Card>
+
             );
           })}
+          <br/>
         </div>
       )}
     </div>

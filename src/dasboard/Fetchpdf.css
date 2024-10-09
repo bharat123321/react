@@ -10,7 +10,11 @@
 .pdf-container .navigation {
     margin-bottom: 10px;
 }
-
+.previousbutton{
+    blackground-color:blue;
+    color:gray;
+    
+}
 .pdf-container canvas {
     width: 100% !important;
     height: auto !important;

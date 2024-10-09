@@ -15,6 +15,9 @@ import Index from './dasboard/Index';
 import Studentdetail from './Result/Studentdetail';
 import Login from './component/Login'; 
 import Register from './component/Register'; 
+import ResetAccount from './component/ResetAccount';
+import ResetPassword from './component/ResetPassword';
+import SecurityCode from './component/SecurityCode';
 import Books from './component/Books';
 import React, { useState } from 'react';
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -35,11 +38,15 @@ import Downloadbook from './dasboard/Downloadbook';
 import BookMark from './profile/BookMark';
 import File from './Admin/PostVerified';
 import Upload from './User/Upload';
+import VerifyEmail from './component/VerifyEmail';
 import './dasboard/Dashboard.css';
 function App() {
-    const { getToken } = AuthUser();
+    const { getToken, getUser } = AuthUser();
     const [loggedIn, setLoggedIn] = useState(!!getToken());
-     console.log(getToken);
+
+    const user = getUser();
+    const isEmailVerified = user && user.email_verified_at !== null;
+
     return (
         <Router>
             {!getToken() ? <Nav_bar /> : <Auth />}
@@ -49,6 +56,9 @@ function App() {
                     <>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
+                        <Route path="/resetaccount" element={<ResetAccount />} />
+                        <Route path="/resetpassword/:email" element={<ResetPassword/>}/>
+                        <Route path="/security-code/:code" element={<SecurityCode/>}/>
                         <Route path="/collbooks" element={<Books />} />
                         <Route path="/Fetchpdf" element={<Fetchpdf />} />
                         <Route path="/viewbook/:id" element={<Viewbook />} />
@@ -56,10 +66,17 @@ function App() {
                         <Route path="/imgtoword" element={<Imgtoword />} />
                         <Route path="/pdftoword" element={<Pdftoword />} />
                         <Route path="/search/:searchTerm" element={<Searchenter />} />
+                    
                     </>
                 )}
+                
+                {/* Email Not Verified Route */}
+                {loggedIn && !isEmailVerified && (
+                    <Route path="/email/verify" element={<VerifyEmail />} />
+                )}
+
                 {/* Protected Routes */}
-                {loggedIn && (
+                {loggedIn && isEmailVerified && (
                     <>
                         <Route path="/home" element={<Dashboard />} />
                         <Route path="/join" element={<JoinClass />} />
@@ -77,14 +94,21 @@ function App() {
                         <Route path="/:subjectname" element={<SubjectComponent />} />
                         <Route path="/bookmark" element={<BookMark />} />
                         <Route path="/searched/:searchTerm" element={<SearchEnter />} />
-                        <Route path="/file" element={<File/>}/>
-                        <Route path="/upload" element={<Upload/>}/>
+                        <Route path="/file" element={<File />} />
+                        <Route path="/upload" element={<Upload />} />
                     </>
                 )}
+
+                {/* Redirects */}
                 {/* Default Route */}
                 <Route path="/" element={loggedIn ? <Navigate to="/home" replace /> : <Index />} />
-                {/* Redirect to home if logged in */}
-                {loggedIn && <Route path="*" element={<Navigate to="/home" replace />} />}
+                
+                {/* Redirect to home if logged in and email verified */}
+                {loggedIn && isEmailVerified && <Route path="*" element={<Navigate to="/home" replace />} />}
+
+                {/* Redirect to email verification page if logged in but email not verified */}
+                {loggedIn && !isEmailVerified && <Route path="*" element={<Navigate to="/email/verify" replace />} />}
+
                 {/* Redirect to login if not logged in */}
                 {!loggedIn && <Route path="*" element={<Navigate to="/login" replace />} />}
             </Routes>

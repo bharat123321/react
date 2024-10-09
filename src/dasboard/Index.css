@@ -1,0 +1,181 @@
+/* General Styling */
+.index-container {
+  font-family: 'Arial', sans-serif;
+  background-color:black;
+  color: #333;
+  padding: 20px;
+
+}
+
+/* NoteSharing Container */
+.notesharing-container {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+  padding: 50px 20px;
+  text-align: center;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  margin-left:0px;
+  margin-right:0px;
+}
+
+.hero-section .animated-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.graduation-cap {
+  color: #fff;
+  animation: spin 10s linear infinite;
+}
+
+/* Category Container */
+.category-container {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 40px 20px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.slogan-section .slogan {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0072ff;
+  margin-bottom: 30px;
+}
+
+.category-buttons  {
+  margin: 10px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.category-btn {
+  width: 200px;  
+  margin: 0 10px;  
+  display:inline;  
+  justify-content: center; 
+  align-items: center;  
+
+}
+
+.category-buttons .category-btn:hover {
+  transform: scale(1.1);
+  background-color: #0056b3;
+  color: white;
+}
+
+/* Footer Container */
+.footer-container {
+  background-color: #333;
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Animations */
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 10px #fff, 0 0 20px #00c6ff, 0 0 30px #0072ff;
+  }
+  100% {
+    text-shadow: 0 0 20px #fff, 0 0 30px #00c6ff, 0 0 40px #0072ff;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section .animated-title {
+    font-size: 2.5rem;
+  }
+
+  .category-buttons .category-btn {
+    font-size: 0.9rem;
+  }
+}
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap; /* Allow cards to wrap to the next line */
+  justify-content: center; /* Center the cards */
+  gap: 20px; /* Gap between cards */
+}
+
+.category-card {
+  width: 200px; /* Fixed width for cards */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+.category-card:hover {
+  transform: scale(1.05); /* Slightly enlarge the card */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Increase shadow on hover */
+}
+
+.category-btn {
+  display: none; /* Hide the button initially */
+}
+.hero-section {
+  display: flex;
+  align-items: center; /* Vertically center the items */
+}
+
+.hero-content {
+  display: flex;
+  align-items: center; /* Vertically center the icon and text */
+  justify-content: center; /* Center the content horizontally */
+}
+
+.graduation-cap {
+  margin-right: 20px; /* Space between the icon and text */
+}
+
+.hero-text {
+  text-align: left; /* Align text to the left */
+}
+
+.animated-title {
+  display: inline-block; /* Allow letters to flow inline */
+  overflow: hidden; /* Hide overflow */
+}
+
+.letter {
+  display: inline-block; /* Display letters inline */
+  padding:5px;
+  opacity: 0; /* Start hidden */
+  transform: translateY(20px); /* Start slightly below */
+  animation: handwriting 0.5s forwards; /* Animation effect */
+}
+
+@keyframes handwriting {
+  to {
+    opacity: 1; /* Fade in text */
+    transform: translateY(0); /* Move to original position */
+  }
+}

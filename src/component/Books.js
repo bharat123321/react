@@ -77,7 +77,7 @@ function Books() {
                                         <Card key={i} className="custom-card">
                                             <div className="pdf-preview">
                                                 <Pagepdf url={`http://127.0.0.1:8000/api/files/${item.file}`} />
-                                                <p className="designPdf">PDF</p>
+                                                <p className="designPdf" style={{color:"white"}}>PDF</p>
                                                              </div>
                                             <Card.Body className="d-flex flex-column justify-content-between">
                                                 <div>  
@@ -96,7 +96,6 @@ function Books() {
                                     <FiChevronRight />
                                 </button>
                             </div>
-                            <hr/>
                             <hr/>
                         </div>
 

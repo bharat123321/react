@@ -60,7 +60,7 @@ function Fetchpdf({ url }) {
             {!loading && !error && (
                 <>
                     <div className="navigation">
-                        <button onClick={goToPrevPage} disabled={pageNumber <= 1}>Previous</button>
+                        <button onClick={goToPrevPage} disabled={pageNumber <= 1} className="previousbutton">Previous</button>
                         <span>Page {pageNumber} of {numPages}</span>
                         <button onClick={goToNextPage} disabled={pageNumber >= numPages}>Next</button>
                     </div>

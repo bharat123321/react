@@ -68,6 +68,7 @@ const logout = () => {
         token,
         user,
         getToken,
+        getUser,
         http,
         logout
     }
